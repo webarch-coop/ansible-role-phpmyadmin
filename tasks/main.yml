@@ -1,0 +1,79 @@
+---
+- name: "Check if the phpMyAdmin {{ phpmyadmin_user }} user account exists"
+  shell: "id {{ phpmyadmin_user }} && echo true || echo false"
+  check_mode: false
+  register: phpmyadmin_user_check
+  changed_when: '"no such user" in phpmyadmin_user_check.stderr'
+  tags:
+    - phpmyadmin
+
+- name: Only install or upgrade phpMyAdmin if the user account exists
+  block:
+
+    - name: Required directories present
+      file:
+        path: "{{ phpmyadmin_home }}/{{ dir }}"
+        state: directory
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_user }}"
+        mode: 0700
+      loop:
+        - .ansible
+        - .gnupg
+      loop_control:
+        loop_var: dir
+      tags:
+        - phpmyadmin
+
+    - name: The phpMyAdmin GPG public key is present
+      copy:
+        src: files/phpmyadmin.pub
+        dest: "{{ phpmyadmin_private }}/phpmyadmin.pub"
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
+      tags:
+        - phpmyadmin
+
+    - name: "phpMyAdmin GPG public key present for {{ phpmyadmin_user }}"
+      command: "gpg --no-tty --import {{ phpmyadmin_private }}/phpmyadmin.pub"
+      register: phpmyadmin_gpg_key_import
+      changed_when: "'not changed' not in phpmyadmin_gpg_key_import.stderr"
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
+      tags:
+        - phpmyadmin
+
+    - name: "phpMyAdmin GPG public key present for root"
+      command: "gpg --no-tty --import {{ phpmyadmin_private }}/phpmyadmin.pub"
+      register: phpmyadmin_gpg_key_import_root
+      changed_when: "'not changed' not in phpmyadmin_gpg_key_import_root.stderr"
+      tags:
+        - phpmyadmin
+
+    - name: Check for config.inc.php
+      stat:
+        path: "{{ phpmyadmin_html }}/config/config.inc.php"
+      register: phpmyadmin_config_check
+      tags:
+        - phpmyadmin
+
+    - name: Upgrade
+      block:
+
+        - name: TODO
+          debug:
+            msg: "Upgrading is yet to be implemented."
+          tags:
+            - phpmyadmin
+
+      when: ( phpmyadmin_config_check is defined ) and ( phpmyadmin_config_check.stat.exists == True )
+
+    - name: Include install tasks
+      include_tasks: install.yml
+      when: ( phpmyadmin_config_check is defined ) and ( phpmyadmin_config_check.stat.exists == False )
+      tags:
+        - phpmyadmin
+
+  when: '"no such user" not in phpmyadmin_user_check.stderr'
+
+...

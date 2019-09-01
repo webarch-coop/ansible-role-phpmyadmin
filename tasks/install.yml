@@ -1,0 +1,10 @@
+---
+- name: Clone the repo
+  git:
+    repo: https://github.com/phpmyadmin/phpmyadmin.git
+    dest: "{{ phpmyadmin_html }}"
+    version: "{{ phpmyadmin_version }}"
+    clone: True
+    force: True
+    verify_commit: True
+...

@@ -1,0 +1,8 @@
+---
+phpmyadmin_version: "5.0.0-alpha1"
+phpmyadmin_user: phpmyadmin
+phpmyadmin_db: "{{ phpmyadmin_user }}"
+phpmyadmin_home: "/home/{{ phpmyadmin_user }}"
+phpmyadmin_private: "/home/{{ phpmyadmin_user }}/private"
+phpmyadmin_html: "/home/{{ phpmyadmin_user }}/sites/default"
+...
