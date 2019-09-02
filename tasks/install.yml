@@ -6,7 +6,7 @@
     version: "{{ phpmyadmin_version }}"
     clone: true
     force: true
-    verify_tag: true
+    verify_commit: true
   tags:
     - phpmyadmin
 
