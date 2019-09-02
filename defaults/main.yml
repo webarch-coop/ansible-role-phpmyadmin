@@ -3,7 +3,7 @@ phpmyadmin_version: "5.0.0-alpha1"
 phpmyadmin_user: phpmyadmin
 phpmyadmin_db: "{{ phpmyadmin_user }}"
 phpmyadmin_db_user: "{{ phpmyadmin_user }}"
-phpmyadmin_db_socket: /var/run/mysqld/mysqld.sock 
+phpmyadmin_db_socket: /var/run/mysqld/mysqld.sock
 phpmyadmin_db_host: localhost
 phpmyadmin_db_port: 3306
 phpmyadmin_home: "/home/{{ phpmyadmin_user }}"

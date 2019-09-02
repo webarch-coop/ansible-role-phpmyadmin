@@ -4,9 +4,9 @@
     repo: https://github.com/phpmyadmin/phpmyadmin.git
     dest: "{{ phpmyadmin_html }}"
     version: "{{ phpmyadmin_version }}"
-    clone: True
-    force: True
-    verify_commit: True
+    clone: true
+    force: true
+    verify_commit: true
   tags:
     - phpmyadmin
 
