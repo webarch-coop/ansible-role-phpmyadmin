@@ -1,4 +1,5 @@
 ---
+# https://docs.phpmyadmin.net/en/latest/setup.html#installing-from-git
 - name: Clone the repo
   git:
     repo: https://github.com/phpmyadmin/phpmyadmin.git
@@ -7,6 +8,33 @@
     clone: true
     force: true
     verify_commit: true
+  tags:
+    - phpmyadmin
+
+- name: Chown the files
+  file:
+    path: "{{ phpmyadmin_html }}"
+    recurse: true
+    owner: "{{ phpmyadmin_user }}"
+    group: "{{ phpmyadmin_user }}"
+  tags:
+    - phpmyadmin
+
+- name: composer update for phpMyAdmin
+  command: composer update --no-dev
+  args:
+    chdir: "{{ phpmyadmin_html }}"
+  become: true
+  become_user: "{{ phpmyadmin_user }}"
+  tags:
+    - phpmyadmin
+
+- name: yarn install for phpMyAdmin
+  command: yarn install
+  args:
+    chdir: "{{ phpmyadmin_html }}"
+  become: true
+  become_user: "{{ phpmyadmin_user }}"
   tags:
     - phpmyadmin
 
