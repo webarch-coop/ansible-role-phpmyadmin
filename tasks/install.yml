@@ -7,4 +7,25 @@
     clone: True
     force: True
     verify_commit: True
+  tags:
+    - phpmyadmin
+
+- name: Generate blowfish secret for cookies
+  command: pwgen -sn 32 1
+  register: phpmyadmin_blowfish_gen
+  tags:
+    - phpmyadmin
+
+- name: Set a fact for the blowfish secret
+  set_fact:
+    phpmyadmin_blowfish_secret: "{{ phpmyadmin_blowfish_gen.stdout }}"
+  tags:
+    - phpmyadmin
+
+- name: Generate the config.inc.php file
+  template:
+    src: templates/config.inc.php.j2
+    dest: "{{ phpmyadmin_html }}/config.inc.php"
+  tags:
+    - phpmyadmin
 ...

@@ -2,7 +2,13 @@
 phpmyadmin_version: "5.0.0-alpha1"
 phpmyadmin_user: phpmyadmin
 phpmyadmin_db: "{{ phpmyadmin_user }}"
+phpmyadmin_db_user: "{{ phpmyadmin_user }}"
+phpmyadmin_db_socket: /var/run/mysqld/mysqld.sock 
+phpmyadmin_db_host: localhost
+phpmyadmin_db_port: 3306
 phpmyadmin_home: "/home/{{ phpmyadmin_user }}"
 phpmyadmin_private: "/home/{{ phpmyadmin_user }}/private"
 phpmyadmin_html: "/home/{{ phpmyadmin_user }}/sites/default"
+phpmyadmin_html_upload_dir: "{{ phpmyadmin_html }}/uploads"
+phpmyadmin_html_save_dir: "{{ phpmyadmin_saves }}/saves"
 ...
