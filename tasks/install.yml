@@ -113,21 +113,21 @@
 
     - name: upgrade_tables_mysql_4_1_2+.sql
       mysql_db:
-        name: "{{ phpmyadmin_html }}/sql/upgrade_tables_mysql_4_1_2+.sql"
+        name: "{{ phpmyadmin_db }}"
         state: import
         target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
       when: phpmyadmin_debian_version is version_compare('4.1.2', '>=')
 
     - name: upgrade_column_info_4_3_0+.sql
       mysql_db:
-        name: "{{ phpmyadmin_html }}/sql/upgrade_column_info_4_3_0+.sql"
+        name: "{{ phpmyadmin_db }}"
         state: import
         target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
       when: phpmyadmin_debian_version is version_compare('4.3.0', '>=')
 
     - name: upgrade_tables_4_7_0+.sql
       mysql_db:
-        name: "{{ phpmyadmin_html }}/sql/upgrade_tables_4_7_0+.sql"
+        name: "{{ phpmyadmin_db }}"
         state: import
         target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
       when: phpmyadmin_debian_version is version_compare('4.6.5', '>=')
