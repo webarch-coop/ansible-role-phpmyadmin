@@ -69,6 +69,14 @@
   tags:
     - phpmyadmin
 
+- name: Database tables present
+  mysql_db:
+    name: "{{ phpmyadmin_db }}"
+    state: import
+    target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
+  tags:
+    - phpmyadmin
+
 - name: Generate blowfish secret for cookies
   command: pwgen -sn 32 1
   register: phpmyadmin_blowfish_gen
