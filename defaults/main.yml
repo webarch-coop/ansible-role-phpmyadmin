@@ -12,4 +12,5 @@ phpmyadmin_private: "/home/{{ phpmyadmin_user }}/private"
 phpmyadmin_html: "/home/{{ phpmyadmin_user }}/sites/default"
 phpmyadmin_html_upload_dir: "{{ phpmyadmin_html }}/uploads"
 phpmyadmin_html_save_dir: "{{ phpmyadmin_saves }}/saves"
+phpmyadmin_default_lang: "en"
 ...
