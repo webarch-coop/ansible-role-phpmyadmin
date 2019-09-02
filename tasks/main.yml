@@ -34,7 +34,7 @@
       tags:
         - phpmyadmin
 
-    - name: "phpMyAdmin GPG public key present for {{ phpmyadmin_user }}"
+    - name: "phpMyAdmin GPG public key imported for {{ phpmyadmin_user }}"
       command: "gpg --no-tty --import {{ phpmyadmin_private }}/phpmyadmin.pub"
       register: phpmyadmin_gpg_key_import
       changed_when: "'not changed' not in phpmyadmin_gpg_key_import.stderr"
@@ -43,7 +43,7 @@
       tags:
         - phpmyadmin
 
-    - name: "phpMyAdmin GPG public key present for root"
+    - name: "phpMyAdmin GPG public key imported for root"
       command: "gpg --no-tty --import {{ phpmyadmin_private }}/phpmyadmin.pub"
       register: phpmyadmin_gpg_key_import_root
       changed_when: "'not changed' not in phpmyadmin_gpg_key_import_root.stderr"
