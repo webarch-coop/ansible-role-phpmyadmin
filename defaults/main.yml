@@ -1,5 +1,6 @@
 ---
-phpmyadmin_version: "5.0.0-alpha1"
+# https://github.com/phpmyadmin/phpmyadmin/releases
+phpmyadmin_version: "RELEASE_5_0_0ALPHA1"
 phpmyadmin_user: phpmyadmin
 phpmyadmin_db: "{{ phpmyadmin_user }}"
 phpmyadmin_db_user: "{{ phpmyadmin_user }}"
