@@ -42,8 +42,8 @@
   tags:
     - phpmyadmin
 
-- name: composer packages for two factor authentication present
-  command: composer require pragmarx/google2fa-qrcode
+- name: composer update for phpMyAdmin
+  command: composer update --no-dev
   args:
     chdir: "{{ phpmyadmin_html }}"
   become: true
@@ -51,8 +51,8 @@
   tags:
     - phpmyadmin
 
-- name: composer update for phpMyAdmin
-  command: composer update --no-dev
+- name: composer packages for two factor authentication present
+  command: composer require pragmarx/google2fa-qrcode
   args:
     chdir: "{{ phpmyadmin_html }}"
   become: true
@@ -116,21 +116,21 @@
         name: "{{ phpmyadmin_html }}/sql/upgrade_tables_mysql_4_1_2+.sql"
         state: import
         target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
-      when: "{{ phpmyadmin_debian_version | version_compare('4.1.2', '>=') }}"
+      when: phpmyadmin_debian_version | version_compare('4.1.2', '>=')
 
     - name: upgrade_column_info_4_3_0+.sql
       mysql_db:
         name: "{{ phpmyadmin_html }}/sql/upgrade_column_info_4_3_0+.sql"
         state: import
         target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
-      when: "{{ phpmyadmin_debian_version | version_compare('4.3.0', '>=') }}"
+      when: phpmyadmin_debian_version | version_compare('4.3.0', '>=')
 
     - name: upgrade_tables_4_7_0+.sql
       mysql_db:
         name: "{{ phpmyadmin_html }}/sql/upgrade_tables_4_7_0+.sql"
         state: import
         target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
-      when: "{{ phpmyadmin_debian_version | version_compare('4.6.5', '>=') }}"
+      when: phpmyadmin_debian_version | version_compare('4.6.5', '>=')
 
     - name: Old phpmyadmin deb packages absent
       apt:
