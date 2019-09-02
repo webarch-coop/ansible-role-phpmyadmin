@@ -10,6 +10,37 @@
   tags:
     - phpmyadmin
 
+- name: .htaccess in place
+  copy:
+    src: files/htaccess.root
+    dest: "{{ phpmyadmin_html }}/.htaccess"
+  tags:
+    - phpmyadmin
+
+- name: Directories for saves and uploads present
+  file:
+    path: "{{ dir }}"
+    state: directory
+  loop:
+    - "{{ phpmyadmin_html_upload_dir }}"
+    - "{{ phpmyadmin_html_save_dir }}"
+  loop_control:
+    loop_var: dir
+  tags:
+    - phpmyadmin
+
+- name: .htaccess in place for upload and saves directory
+  copy:
+    src: files/htaccess.deny
+    dest: "{{ dir }}/.htaccess"
+  loop:
+    - "{{ phpmyadmin_html_upload_dir }}"
+    - "{{ phpmyadmin_html_save_dir }}"
+  loop_control:
+    loop_var: dir
+  tags:
+    - phpmyadmin
+
 - name: Generate blowfish secret for cookies
   command: pwgen -sn 32 1
   register: phpmyadmin_blowfish_gen

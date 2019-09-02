@@ -1,0 +1,4 @@
+<Files "config.inc.php">
+  deny from all
+</Files>
+# vim: set ft=apache:
