@@ -1,26 +1,26 @@
 ---
 # https://docs.phpmyadmin.net/en/latest/setup.html#installing-from-git
 
-- name: Check if a Debian package is installed 
-  shell: "aptitude versions phpmyadmin | grep -q ^i && echo INSTALLED || echo NOTFOUND" 
-  register: phpmyadmin_debian_installed 
-  tags: 
-    - phpmyadmin 
- 
-- name: Get the version of the Debian package which is installed 
-  block: 
- 
-    - shell: "aptitude versions phpmyadmin | grep ^i | awk '{ print $2 }' | sed 's/.*://'" 
-      register: phpmyadmin_debian_version_check 
-      tags: 
-        - phpmyadmin 
- 
-    - name: Set a fact for the phpmyadmin_debian_version 
-      set_fact: 
-        phpmyadmin_debian_version: "{{ phpmyadmin_debian_version_check.stdout }}" 
-      when: phpmyadmin_debian_version_check is defined 
- 
-  when: ( phpmyadmin_debian_installed is defined ) and ( phpmyadmin_debian_installed.stdout == "INSTALLED" ) 
+- name: Check if a Debian package is installed
+  shell: "aptitude versions phpmyadmin | grep -q ^i && echo INSTALLED || echo NOTFOUND"
+  register: phpmyadmin_debian_installed
+  tags:
+    - phpmyadmin
+
+- name: Get the version of the Debian package which is installed
+  block:
+
+    - shell: "aptitude versions phpmyadmin | grep ^i | awk '{ print $2 }' | sed 's/.*://'"
+      register: phpmyadmin_debian_version_check
+      tags:
+        - phpmyadmin
+
+    - name: Set a fact for the phpmyadmin_debian_version
+      set_fact:
+        phpmyadmin_debian_version: "{{ phpmyadmin_debian_version_check.stdout }}"
+      when: phpmyadmin_debian_version_check is defined
+
+  when: ( phpmyadmin_debian_installed is defined ) and ( phpmyadmin_debian_installed.stdout == "INSTALLED" )
 
 - name: Clone the repo
   git:
