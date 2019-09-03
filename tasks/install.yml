@@ -1,105 +1,4 @@
 ---
-# https://docs.phpmyadmin.net/en/latest/setup.html#installing-from-git
-
-- name: Check if a Debian package is installed
-  shell: "aptitude versions phpmyadmin | grep -q ^i && echo INSTALLED || echo NOTFOUND"
-  register: phpmyadmin_debian_installed
-  tags:
-    - phpmyadmin
-
-- name: Get the version of the Debian package which is installed
-  block:
-
-    - shell: "aptitude versions phpmyadmin | grep ^i | awk '{ print $2 }' | sed 's/.*://'"
-      register: phpmyadmin_debian_version_check
-      tags:
-        - phpmyadmin
-
-    - name: Set a fact for the phpmyadmin_debian_version
-      set_fact:
-        phpmyadmin_debian_version: "{{ phpmyadmin_debian_version_check.stdout }}"
-      when: phpmyadmin_debian_version_check is defined
-
-  when: ( phpmyadmin_debian_installed is defined ) and ( phpmyadmin_debian_installed.stdout == "INSTALLED" )
-
-- name: Clone the repo
-  git:
-    repo: https://github.com/phpmyadmin/phpmyadmin.git
-    dest: "{{ phpmyadmin_html }}"
-    version: "{{ phpmyadmin_version }}"
-    clone: true
-    force: true
-    verify_commit: true
-  tags:
-    - phpmyadmin
-
-- name: Chown the files
-  file:
-    path: "{{ phpmyadmin_html }}"
-    recurse: true
-    owner: "{{ phpmyadmin_user }}"
-    group: "{{ phpmyadmin_user }}"
-  tags:
-    - phpmyadmin
-
-- name: composer update for phpMyAdmin
-  command: composer update --no-dev
-  args:
-    chdir: "{{ phpmyadmin_html }}"
-  become: true
-  become_user: "{{ phpmyadmin_user }}"
-  tags:
-    - phpmyadmin
-
-- name: composer packages for two factor authentication present
-  command: composer require pragmarx/google2fa-qrcode
-  args:
-    chdir: "{{ phpmyadmin_html }}"
-  become: true
-  become_user: "{{ phpmyadmin_user }}"
-  tags:
-    - phpmyadmin
-
-- name: yarn install for phpMyAdmin
-  command: yarn install
-  args:
-    chdir: "{{ phpmyadmin_html }}"
-  become: true
-  become_user: "{{ phpmyadmin_user }}"
-  tags:
-    - phpmyadmin
-
-- name: .htaccess in place
-  copy:
-    src: files/htaccess.root
-    dest: "{{ phpmyadmin_html }}/.htaccess"
-  tags:
-    - phpmyadmin
-
-- name: Directories for saves and uploads present
-  file:
-    path: "{{ dir }}"
-    state: directory
-  loop:
-    - "{{ phpmyadmin_html_upload_dir }}"
-    - "{{ phpmyadmin_html_save_dir }}"
-  loop_control:
-    loop_var: dir
-  tags:
-    - phpmyadmin
-
-- name: .htaccess in place for upload and saves directory
-  copy:
-    src: files/htaccess.deny
-    dest: "{{ dir }}/.htaccess"
-  loop:
-    - "{{ phpmyadmin_html_upload_dir }}"
-    - "{{ phpmyadmin_html_save_dir }}"
-  loop_control:
-    loop_var: dir
-  tags:
-    - phpmyadmin
-
 - name: Database tables present
   mysql_db:
     name: "{{ phpmyadmin_db }}"
@@ -108,7 +7,7 @@
   tags:
     - phpmyadmin
 
-- name: Run database upgrades
+- name: Run database upgrades 
   block:
 
     - name: upgrade_tables_mysql_4_1_2+.sql
@@ -117,6 +16,8 @@
         state: import
         target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
       when: phpmyadmin_debian_version is version_compare('4.1.2', '>=')
+      tags:
+        - phpmyadmin
 
     - name: upgrade_column_info_4_3_0+.sql
       mysql_db:
@@ -124,6 +25,8 @@
         state: import
         target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
       when: phpmyadmin_debian_version is version_compare('4.3.0', '>=')
+      tags:
+        - phpmyadmin
 
     - name: upgrade_tables_4_7_0+.sql
       mysql_db:
@@ -131,33 +34,7 @@
         state: import
         target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
       when: phpmyadmin_debian_version is version_compare('4.6.5', '>=')
-
-    - name: Old phpmyadmin deb packages absent
-      apt:
-        pkg: phpmyadmin
-        state: absent
-        purge: true
       tags:
         - phpmyadmin
 
   when: phpmyadmin_debian_version is defined
-
-- name: Generate blowfish secret for cookies
-  command: pwgen -sn 32 1
-  register: phpmyadmin_blowfish_gen
-  tags:
-    - phpmyadmin
-
-- name: Set a fact for the blowfish secret
-  set_fact:
-    phpmyadmin_blowfish_secret: "{{ phpmyadmin_blowfish_gen.stdout }}"
-  tags:
-    - phpmyadmin
-
-- name: Generate the config.inc.php file
-  template:
-    src: templates/config.inc.php.j2
-    dest: "{{ phpmyadmin_html }}/config.inc.php"
-  tags:
-    - phpmyadmin
-...

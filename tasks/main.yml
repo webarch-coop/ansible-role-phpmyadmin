@@ -1,4 +1,15 @@
 ---
+- name: Required packages present
+  apt:
+    pkg:
+      - aptitude
+      - git
+      - gnupg
+      - pwgen
+    state: present
+  tags:
+    - phpmyadmin
+
 - name: "Check if the phpMyAdmin {{ phpmyadmin_user }} user account exists"
   shell: "id {{ phpmyadmin_user }} && echo true || echo false"
   check_mode: false
@@ -50,6 +61,18 @@
       tags:
         - phpmyadmin
 
+    - name: Check if a Debian package is installed
+      shell: "aptitude versions phpmyadmin | grep -q ^i && echo INSTALLED || echo NOTFOUND"
+      register: phpmyadmin_debian_installed
+      tags:
+        - phpmyadmin
+
+    - name: Upgrade from a Debian package version
+      include_tasks: upgrade_from_deb.yml 
+      when: ( phpmyadmin_debian_installed is defined ) and ( phpmyadmin_debian_installed.stdout == "INSTALLED" )
+      tags:
+        - phpmyadmin
+
     - name: Check for config.inc.php
       stat:
         path: "{{ phpmyadmin_html }}/config/config.inc.php"
@@ -57,20 +80,22 @@
       tags:
         - phpmyadmin
 
-    - name: Upgrade
-      block:
-
-        - name: TODO
-          debug:
-            msg: "Upgrading is yet to be implemented."
-          tags:
-            - phpmyadmin
-
+    - name: phpMyAdmin present
+      include_tasks: phpmyadmin.yml
       when: ( phpmyadmin_config_check is defined ) and ( phpmyadmin_config_check.stat.exists == True )
+      tags:
+        - phpmyadmin
 
-    - name: Include install tasks
+    - name: Include additional install tasks
       include_tasks: install.yml
       when: ( phpmyadmin_config_check is defined ) and ( phpmyadmin_config_check.stat.exists == False )
+      tags:
+        - phpmyadmin
+
+    - name: Generate the config.inc.php file
+      template:
+        src: templates/config.inc.php.j2
+        dest: "{{ phpmyadmin_html }}/config.inc.php"
       tags:
         - phpmyadmin
 

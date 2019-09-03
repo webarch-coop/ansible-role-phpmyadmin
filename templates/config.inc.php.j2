@@ -10,11 +10,10 @@
  */
 declare(strict_types=1);
 
-/**
- * This is needed for cookie based authentication to encrypt password in
- * cookie. Needs to be 32 chars long.
- */
-$cfg['blowfish_secret'] = '{{ phpmyadmin_blowfish_secret }}'; /* YOU MUST FILL IN THIS FOR COOKIE AUTH! */
+// Load blowfish secret for cookies 
+if (check_file_access('{{ phpmyadmin_private }}/blowfish_secret.inc.php')) {
+    require('{{ phpmyadmin_private }}/blowfish_secret.inc.php');
+}
 
 /**
  * Servers configuration
