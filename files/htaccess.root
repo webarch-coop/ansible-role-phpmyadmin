@@ -1,3 +1,7 @@
+# 404 if it starts with a dot
+RedirectMatch 404 /\.
+
+# phpMyAdmin config file
 <Files "config.inc.php">
   deny from all
 </Files>

@@ -72,13 +72,27 @@
   tags:
     - phpmyadmin
 
-- name: .htaccess in place for upload and saves directory
+- name: .htaccess in place to deny direct access to sub-directories
   copy:
     src: files/htaccess.deny
     dest: "{{ dir }}/.htaccess"
   loop:
     - "{{ phpmyadmin_html_upload_dir }}"
     - "{{ phpmyadmin_html_save_dir }}"
+    - "{{ phpmyadmin_html }}/doc" 
+    - "{{ phpmyadmin_html }}/examples"
+    - "{{ phpmyadmin_html }}/js"
+    - "{{ phpmyadmin_html }}/libraries"
+    - "{{ phpmyadmin_html }}/node_modules"
+    - "{{ phpmyadmin_html }}/po"
+    - "{{ phpmyadmin_html }}/scripts"
+    - "{{ phpmyadmin_html }}/setup"
+    - "{{ phpmyadmin_html }}/sql"
+    - "{{ phpmyadmin_html }}/templates"
+    - "{{ phpmyadmin_html }}/test"
+    - "{{ phpmyadmin_html }}/themes"
+    - "{{ phpmyadmin_html }}/tmp"
+    - "{{ phpmyadmin_html }}/vendor"
   loop_control:
     loop_var: dir
   tags:
