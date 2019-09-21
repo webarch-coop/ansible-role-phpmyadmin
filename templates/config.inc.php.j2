@@ -68,6 +68,7 @@ $cfg['Servers'][$i]['export_templates'] = 'pma__export_templates';
  * End of servers configuration
  */
 
+$cfg['AuthLog'] = 'syslog';
 $cfg['AuthLogSuccess'] = 'syslog';
 $cfg['TempDir'] = '{{ item.value.users_home | default('/home/' + item.key) }}/tmp';
 
