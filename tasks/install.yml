@@ -7,7 +7,7 @@
   tags:
     - phpmyadmin
 
-- name: Run database upgrades 
+- name: Run database upgrades
   block:
 
     - name: upgrade_tables_mysql_4_1_2+.sql
@@ -38,3 +38,4 @@
         - phpmyadmin
 
   when: phpmyadmin_debian_version is defined
+...

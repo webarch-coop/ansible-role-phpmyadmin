@@ -68,7 +68,7 @@
         - phpmyadmin
 
     - name: Upgrade from a Debian package version
-      include_tasks: upgrade_from_deb.yml 
+      include_tasks: upgrade_from_deb.yml
       when: ( phpmyadmin_debian_installed is defined ) and ( phpmyadmin_debian_installed.stdout == "INSTALLED" )
       tags:
         - phpmyadmin

@@ -6,7 +6,8 @@
     dest: "{{ phpmyadmin_html }}"
     version: "{{ phpmyadmin_version }}"
     clone: true
-    force: false
+    update: true
+    force: true
     verify_commit: true
     register: phpmyadmin_git
   tags:
@@ -63,22 +64,22 @@
 - name: .htaccess in place to deny direct access to sub-directories
   copy:
     src: files/htaccess.deny
-    dest: "{{ dir }}/.htaccess"
+    dest: "{{ phpmyadmin_html }}/{{ d }}/.htaccess"
   loop:
-    - "{{ phpmyadmin_html }}/doc" 
-    - "{{ phpmyadmin_html }}/examples"
-    - "{{ phpmyadmin_html }}/js"
-    - "{{ phpmyadmin_html }}/libraries"
-    - "{{ phpmyadmin_html }}/node_modules"
-    - "{{ phpmyadmin_html }}/po"
-    - "{{ phpmyadmin_html }}/scripts"
-    - "{{ phpmyadmin_html }}/setup"
-    - "{{ phpmyadmin_html }}/sql"
-    - "{{ phpmyadmin_html }}/templates"
-    - "{{ phpmyadmin_html }}/test"
-    - "{{ phpmyadmin_html }}/themes"
-    - "{{ phpmyadmin_html }}/tmp"
-    - "{{ phpmyadmin_html }}/vendor"
+    - doc
+    - examples
+    - js
+    - libraries
+    - node_modules
+    - po
+    - scripts
+    - setup
+    - sql
+    - templates
+    - test
+    - themes
+    - tmp
+    - vendor
   loop_control:
     loop_var: dir
   tags:
