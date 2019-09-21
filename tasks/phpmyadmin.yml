@@ -60,25 +60,11 @@
   tags:
     - phpmyadmin
 
-- name: Directories for saves and uploads present
-  file:
-    path: "{{ dir }}"
-    state: directory
-  loop:
-    - "{{ phpmyadmin_html_upload_dir }}"
-    - "{{ phpmyadmin_html_save_dir }}"
-  loop_control:
-    loop_var: dir
-  tags:
-    - phpmyadmin
-
 - name: .htaccess in place to deny direct access to sub-directories
   copy:
     src: files/htaccess.deny
     dest: "{{ dir }}/.htaccess"
   loop:
-    - "{{ phpmyadmin_html_upload_dir }}"
-    - "{{ phpmyadmin_html_save_dir }}"
     - "{{ phpmyadmin_html }}/doc" 
     - "{{ phpmyadmin_html }}/examples"
     - "{{ phpmyadmin_html }}/js"
