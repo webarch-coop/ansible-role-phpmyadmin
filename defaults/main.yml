@@ -1,4 +1,5 @@
 ---
+# Use a release tag from this page for the version
 # https://github.com/phpmyadmin/phpmyadmin/releases
 phpmyadmin_version: "RELEASE_5_0_0ALPHA1"
 phpmyadmin_user: phpmyadmin
