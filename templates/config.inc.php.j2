@@ -30,7 +30,17 @@ $cfg['Servers'][$i]['auth_type'] = 'cookie';
 $cfg['Servers'][$i]['host'] = 'localhost';
 $cfg['Servers'][$i]['compress'] = false;
 $cfg['Servers'][$i]['AllowNoPassword'] = false;
+{% if phpmyadmin_deny_root is True }}
 $cfg['Servers'][$i]['AllowRoot'] = false;
+{% endif %}
+{% if phpmyadmin_deny_users is defined %}
+$cfg['Servers'][$i]['AllowDeny']['order'] = 'deny,allow';
+$cfg['Servers'][$i]['AllowDeny']['rules'] = array(
+{% for user in phpmyadmin_deny_users %}
+    'deny {{ user }} from all'{% if not loop.last %},{% endif %}
+{% endfor %}
+);
+{% endif %}
 
 /**
  * phpMyAdmin configuration storage settings.
@@ -111,6 +121,11 @@ $cfg['QueryHistoryMax'] = 100;
  * default = 'ask'
  */
 $cfg['SendErrorReports'] = 'ask';
+
+/**
+ * Hide form for creating database or not at the starting main (right) frame.
+ */
+$cfg['ShowCreateDb'] = 'false';
 
 /**
  * You can find more configuration options in the documentation

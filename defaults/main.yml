@@ -14,4 +14,8 @@ phpmyadmin_version_file: "{{ phpmyadmin_private }}/VERSION"
 phpmyadmin_blowfish_file: "{{ phpmyadmin_private }}/.blowfish.secret"
 phpmyadmin_html: "/home/{{ phpmyadmin_user }}/sites/default"
 phpmyadmin_default_lang: "en"
+phpmyadmin_deny_root: true
+phpmyadmin_deny_users:
+  - "{{ phpmyadmin_user }}"
+  - stats
 ...
