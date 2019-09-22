@@ -82,7 +82,6 @@
 
     - name: phpMyAdmin present
       include_tasks: phpmyadmin.yml
-      when: ( phpmyadmin_config_check is defined ) and ( phpmyadmin_config_check.stat.exists == True )
       tags:
         - phpmyadmin
 
