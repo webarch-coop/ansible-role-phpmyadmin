@@ -6,15 +6,16 @@
     owner: "{{ phpmyadmin_user }}"
     group: "{{ phpmyadmin_user }}"
     mode: 0644
-  tags:
-    - phpmyadmin
-
-- name: "Stat {{ phpmyadmin_version_file }}"
-  stat:
-    path: "{{ phpmyadmin_version_file }}"
   register: phpmyadmin_version_file
   tags:
     - phpmyadmin
+
+# - name: "Stat {{ phpmyadmin_version_file }}"
+#   stat:
+#     path: "{{ phpmyadmin_version_file }}"
+#   register: phpmyadmin_version_file
+#   tags:
+#     - phpmyadmin
 
 # https://docs.phpmyadmin.net/en/latest/setup.html#installing-from-git
 - name: phpMyAdmin repo present
