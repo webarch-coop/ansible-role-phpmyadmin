@@ -50,7 +50,7 @@
         chdir: "{{ phpmyadmin_html }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
-      when: ( phpmyadmin_2fa is defined ) and ( phpmyadmin_2fa == True )
+      when: '"RELEASE_5" in phpmyadmin_version'
       tags:
         - phpmyadmin
 

@@ -1,7 +1,9 @@
 # phpMyAdmin
 
 This is an Ansible role to install [phpMyAdmin](https://www.phpmyadmin.net/),
-using `git`, it has, so far, only been tested on Debian Buster using the [Alpha
+using `git`, it has, so far, only been tested on Debian Buster.
+
+The [Alpha
 version 5](https://github.com/phpmyadmin/phpmyadmin/releases). 
 
 This is role designed to be used with [Apache](https://git.coop/webarch/apache)
