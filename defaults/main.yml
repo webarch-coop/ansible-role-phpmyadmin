@@ -1,7 +1,10 @@
 ---
 # Use a release tag from this page for the version
 # https://github.com/phpmyadmin/phpmyadmin/releases
-phpmyadmin_version: "RELEASE_5_0_0ALPHA1"
+phpmyadmin_version: "RELEASE_4_9_1"
+#phpmyadmin_version: "RELEASE_5_0_0ALPHA1"
+# 2fa only works with version 5
+phpmyadmin_2fa: false
 phpmyadmin_user: phpmyadmin
 phpmyadmin_db: "{{ phpmyadmin_user }}"
 phpmyadmin_db_user: "{{ phpmyadmin_user }}"
