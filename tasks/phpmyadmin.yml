@@ -73,25 +73,22 @@
   tags:
     - phpmyadmin
 
-- name: .htaccess in place to deny direct access to sub-directories
+# https://docs.phpmyadmin.net/en/latest/config.html#web-dirs
+- name: Get a list of sub-directories
+  shell: find . -maxdepth 1 -type d | grep -v ^\.$ | sed 's/\.\///'
+  args:
+    chdir: "{{ phpmyadmin_html }}"
+  become: true
+  become_user: "{{ phpmyadmin_user }}"
+  register: phpmyadmin_subdirs
+  tags:
+    - phpmyadmin
+
+- name: .htaccess files in place to deny direct access to sub-directories
   copy:
     src: files/htaccess.deny
     dest: "{{ phpmyadmin_html }}/{{ dir }}/.htaccess"
-  loop:
-    - doc
-    - examples
-    - js
-    - libraries
-    - node_modules
-    - po
-    - scripts
-    - setup
-    - sql
-    - templates
-    - test
-    - themes
-    - tmp
-    - vendor
+  loop: "{{ phpmyadmin_subdirs.stdout_lines }}"
   loop_control:
     loop_var: dir
   tags:
