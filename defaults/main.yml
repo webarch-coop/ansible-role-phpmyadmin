@@ -17,5 +17,4 @@ phpmyadmin_default_lang: "en"
 phpmyadmin_deny_root: true
 phpmyadmin_deny_users:
   - "{{ phpmyadmin_user }}"
-  - stats
 ...
