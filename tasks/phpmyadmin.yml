@@ -1,5 +1,4 @@
 ---
-# https://docs.phpmyadmin.net/en/latest/setup.html#installing-from-git
 - name: "Write phpmyadmin_version variable to {{ phpmyadmin_version_file }}"
   template:
     src: templates/phpmyadmin_version.j2
@@ -8,6 +7,7 @@
   tags:
     - phpmyadmin
 
+# https://docs.phpmyadmin.net/en/latest/setup.html#installing-from-git
 - name: phpMyAdmin repo present
   git:
     repo: https://github.com/phpmyadmin/phpmyadmin.git
