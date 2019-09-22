@@ -80,7 +80,7 @@
 
     - name: Check for config.inc.php
       stat:
-        path: "{{ phpmyadmin_html }}/config/config.inc.php"
+        path: "{{ phpmyadmin_html }}/config.inc.php"
       register: phpmyadmin_config_check
       tags:
         - phpmyadmin
