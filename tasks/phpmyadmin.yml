@@ -96,10 +96,9 @@
     - phpmyadmin
 
 - name: Generate blowfish secret for cookies
-  shell: pwgen -sn 32 1 > .blowfish.secret
+  shell: "pwgen -sn 32 1 > {{ phpmyadmin_blowfish_file }} && chmod 400 {{ phpmyadmin_blowfish_file }}"
   args:
-    chdir: "{{ phpmyadmin_private }}"
-    creates: "{{ phpmyadmin_private }}.blowfish.secret"
+    creates: "{{ phpmyadmin_blowfish_file }}"
   become: true
   become_user: "{{ phpmyadmin_user }}"
   tags:
@@ -107,7 +106,7 @@
 
 - name: Set a variable for the base64 encoded .blowfish.secret value
   slurp:
-    src: "{{ phpmyadmin_private }}.blowfish.secret"
+    src: "{{ phpmyadmin_blowfish_file }}"
   register: phpmyadmin_blowfish_b64encoded
   tags:
     - phpmyadmin

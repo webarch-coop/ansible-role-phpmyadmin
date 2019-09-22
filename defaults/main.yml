@@ -11,6 +11,7 @@ phpmyadmin_db_port: 3306
 phpmyadmin_home: "/home/{{ phpmyadmin_user }}"
 phpmyadmin_private: "/home/{{ phpmyadmin_user }}/private"
 phpmyadmin_version_file: "{{ phpmyadmin_private }}/VERSION"
+phpmyadmin_blowfish_file: "{{ phpmyadmin_private }}/.blowfish.secret"
 phpmyadmin_html: "/home/{{ phpmyadmin_user }}/sites/default"
 phpmyadmin_default_lang: "en"
 ...
