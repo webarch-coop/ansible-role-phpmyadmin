@@ -63,7 +63,7 @@
     - name: yarn install for phpMyAdmin
       command: yarn install
       register: phpmyadmin_yarn_install
-      changed_when: '""Already up-to-date." not in phpmyadmin_yarn_install.stdout'
+      changed_when: '"Already up-to-date." not in phpmyadmin_yarn_install.stdout'
       args:
         chdir: "{{ phpmyadmin_html }}"
       become: true
