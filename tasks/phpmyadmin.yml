@@ -1,7 +1,7 @@
 ---
 - name: "Write phpmyadmin_version variable to {{ phpmyadmin_version_file }}"
   template:
-    src: templates/phpmyadmin_version.j2
+    src: templates/VERSION.j2
     dest: "{{ phpmyadmin_version_file }}"
   tags:
     - phpmyadmin
