@@ -97,9 +97,9 @@
 
 - name: Generate blowfish secret for cookies
   shell: pwgen -sn 32 1 > .blowfish.secret
-  creates: "{{ phpmyadmin_private }}.blowfish.secret"
   args:
     chdir: "{{ phpmyadmin_private }}"
+    creates: "{{ phpmyadmin_private }}.blowfish.secret"
   become: true
   become_user: "{{ phpmyadmin_user }}"
   tags:
