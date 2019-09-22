@@ -3,6 +3,9 @@
   template:
     src: templates/VERSION.j2
     dest: "{{ phpmyadmin_version_file }}"
+    owner: "{{ phpmyadmin_user }}"
+    group: "{{ phpmyadmin_user }}"
+    mode: 0644
   tags:
     - phpmyadmin
 
