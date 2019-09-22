@@ -125,6 +125,9 @@
       template:
         src: templates/blowfish_secret.inc.php.j2
         dest: "{{ phpmyadmin_private }}/blowfish_secret.inc.php"
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_user }}"
+        mode: 0644
       tags:
         - phpmyadmin
 
