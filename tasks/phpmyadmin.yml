@@ -80,6 +80,7 @@
     chdir: "{{ phpmyadmin_html }}"
   become: true
   become_user: "{{ phpmyadmin_user }}"
+  changed_when: false
   register: phpmyadmin_subdirs
   tags:
     - phpmyadmin
