@@ -1,7 +1,6 @@
 <?php
 /**
- * phpMyAdmin sample configuration, you can use it as base for
- * manual configuration. For easier setup you can use setup/
+ * {{ ansible_managed }}
  *
  * All directives are explained in documentation in the doc/ folder
  * or at <https://docs.phpmyadmin.net/>.
@@ -10,10 +9,11 @@
  */
 declare(strict_types=1);
 
-// Load blowfish secret for cookies 
-if (check_file_access('{{ phpmyadmin_private }}/blowfish_secret.inc.php')) {
-    require('{{ phpmyadmin_private }}/blowfish_secret.inc.php');
-}
+/**
+ * This is needed for cookie based authentication to encrypt password in
+ * cookie. Needs to be 32 chars long.
+ */
+$cfg['blowfish_secret'] = '{{ phpmyadmin_blowfish_secret }}';
 
 /**
  * Servers configuration
@@ -68,8 +68,15 @@ $cfg['Servers'][$i]['export_templates'] = 'pma__export_templates';
  * End of servers configuration
  */
 
+/** 
+ * Log to /dev/log for fail2ban
+ */
 $cfg['AuthLog'] = 'syslog';
 $cfg['AuthLogSuccess'] = 'syslog';
+
+/**
+ * Private TMPDIR
+ */
 $cfg['TempDir'] = '{{ item.value.users_home | default('/home/' + item.key) }}/tmp';
 
 /**

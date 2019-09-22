@@ -45,7 +45,7 @@
         - phpmyadmin
 
     - name: composer packages for two factor authentication present
-      command: composer require pragmarx/google2fa-qrcode
+      command: composer require --update-no-dev pragmarx/google2fa-qrcode
       args:
         chdir: "{{ phpmyadmin_html }}"
       become: true
@@ -75,7 +75,7 @@
 
 # https://docs.phpmyadmin.net/en/latest/config.html#web-dirs
 - name: Get a list of sub-directories
-  shell: find . -maxdepth 1 -type d | grep -v ^\.$ | sed 's/\.\///'
+  shell: find . -maxdepth 1 -type d | grep -v ^\.$ | sed 's/\.\///' | grep -v ^js$ | grep -v ^themes$ | grep -v ^vendor$
   args:
     chdir: "{{ phpmyadmin_html }}"
   become: true
@@ -95,37 +95,26 @@
   tags:
     - phpmyadmin
 
-- name: Stat the blowfish secret file
-  stat:
-    path: "{{ phpmyadmin_private }}/blowfish_secret.inc.php"
-  register: phpmyadmin_private_blowfish_secret_file
+- name: Generate blowfish secret for cookies
+  shell: pwgen -sn 32 1 > .blowfish.secret
+  creates: "{{ phpmyadmin_private }}.blowfish.secret"
+  args:
+    chdir: "{{ phpmyadmin_private }}"
+  become: true
+  become_user: "{{ phpmyadmin_user }}"
   tags:
     - phpmyadmin
 
-- name: Generate the blowfish secret file
-  block:
+- name: Set a variable for the base64 encoded .blowfish.secret value
+  slurp:
+    src: "{{ phpmyadmin_private }}.blowfish.secret"
+  register: phpmyadmin_blowfish_b64encoded
+  tags:
+    - phpmyadmin
 
-    - name: Generate blowfish secret for cookies
-      command: pwgen -sn 32 1
-      register: phpmyadmin_blowfish_gen
-      tags:
-        - phpmyadmin
-
-    - name: Set a fact for the blowfish secret
-      set_fact:
-        phpmyadmin_blowfish_secret: "{{ phpmyadmin_blowfish_gen.stdout }}"
-      tags:
-        - phpmyadmin
-
-    - name: Blowfish secret file present
-      template:
-        src: templates/blowfish_secret.inc.php.j2
-        dest: "{{ phpmyadmin_private }}/blowfish_secret.inc.php"
-        owner: "{{ phpmyadmin_user }}"
-        group: "{{ phpmyadmin_user }}"
-        mode: 0400
-      tags:
-        - phpmyadmin
-
-  when: phpmyadmin_private_blowfish_secret_file.stat.exists == False
+- name: Set a fact for the blowfish secret
+  set_fact:
+    phpmyadmin_blowfish_secret: "{{ phpmyadmin_blowfish_b64encoded['content'] | b64decode | trim }}"
+  tags:
+    - phpmyadmin
 ...
