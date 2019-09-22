@@ -76,7 +76,7 @@
 - name: .htaccess in place to deny direct access to sub-directories
   copy:
     src: files/htaccess.deny
-    dest: "{{ phpmyadmin_html }}/{{ d }}/.htaccess"
+    dest: "{{ phpmyadmin_html }}/{{ dir }}/.htaccess"
   loop:
     - doc
     - examples
