@@ -45,7 +45,7 @@
         - phpmyadmin
 
     - name: composer packages for two factor authentication present
-      command: composer require --update-no-dev pragmarx/google2fa-qrcode
+      command: composer require pragmarx/google2fa-qrcode
       args:
         chdir: "{{ phpmyadmin_html }}"
       become: true
