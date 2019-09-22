@@ -73,15 +73,15 @@
       tags:
         - phpmyadmin
 
+    - name: Include tasks to ensure that the phpMyAdmin source code is present
+      include_tasks: phpmyadmin.yml
+      tags:
+        - phpmyadmin
+
     - name: Check for config.inc.php
       stat:
         path: "{{ phpmyadmin_html }}/config/config.inc.php"
       register: phpmyadmin_config_check
-      tags:
-        - phpmyadmin
-
-    - name: phpMyAdmin present
-      include_tasks: phpmyadmin.yml
       tags:
         - phpmyadmin
 
@@ -99,5 +99,4 @@
         - phpmyadmin
 
   when: '"no such user" not in phpmyadmin_user_check.stderr'
-
 ...
