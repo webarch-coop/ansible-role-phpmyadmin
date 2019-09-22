@@ -3,7 +3,13 @@
   template:
     src: templates/phpmyadmin_version.j2
     dest: "{{ phpmyadmin_version_file }}"
-  register: phpmyadmin_version_file_state
+  tags:
+    - phpmyadmin
+
+- name: "Stat {{ phpmyadmin_version_file }}"
+  stat:
+    path: "{{ phpmyadmin_version_file }}"
+  register: phpmyadmin_version_file
   tags:
     - phpmyadmin
 
@@ -58,7 +64,7 @@
       tags:
         - phpmyadmin
 
-  when: phpmyadmin_version_file.changed
+  when: phpmyadmin_version_file is changed
 
 - name: .htaccess in place
   copy:
