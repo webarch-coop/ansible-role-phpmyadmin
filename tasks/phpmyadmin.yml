@@ -62,6 +62,8 @@
 
     - name: yarn install for phpMyAdmin
       command: yarn install
+      register: phpmyadmin_yarn_install
+      changed_when: '""Already up-to-date." not in phpmyadmin_yarn_install'
       args:
         chdir: "{{ phpmyadmin_html }}"
       become: true
@@ -128,7 +130,7 @@
         dest: "{{ phpmyadmin_private }}/blowfish_secret.inc.php"
         owner: "{{ phpmyadmin_user }}"
         group: "{{ phpmyadmin_user }}"
-        mode: 0644
+        mode: 0400
       tags:
         - phpmyadmin
 
