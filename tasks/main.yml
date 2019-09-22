@@ -91,6 +91,16 @@
       tags:
         - phpmyadmin
 
+    - name: robots.txt in place
+      copy:
+        src: robots.txt
+        dest: "{{ phpmyadmin_html }}/robots.txt"
+        owner: "{{ phpmyadmin_user }]"
+        group: "{{ phpmyadmin_user }]"
+        mode: "0644"
+      tags:
+        - phpmyadmin
+
     - name: Generate the config.inc.php file
       template:
         src: templates/config.inc.php.j2
