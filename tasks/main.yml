@@ -95,8 +95,8 @@
       copy:
         src: robots.txt
         dest: "{{ phpmyadmin_html }}/robots.txt"
-        owner: "{{ phpmyadmin_user }]"
-        group: "{{ phpmyadmin_user }]"
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_user }}"
         mode: "0644"
       tags:
         - phpmyadmin
