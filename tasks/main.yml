@@ -68,27 +68,36 @@
         - phpmyadmin
 
     - name: Upgrade from a Debian package version
-      include_tasks: upgrade_from_deb.yml 
+      include_tasks: upgrade_from_deb.yml
       when: ( phpmyadmin_debian_installed is defined ) and ( phpmyadmin_debian_installed.stdout == "INSTALLED" )
+      tags:
+        - phpmyadmin
+
+    - name: Include tasks to ensure that the phpMyAdmin source code is present
+      include_tasks: phpmyadmin.yml
       tags:
         - phpmyadmin
 
     - name: Check for config.inc.php
       stat:
-        path: "{{ phpmyadmin_html }}/config/config.inc.php"
+        path: "{{ phpmyadmin_html }}/config.inc.php"
       register: phpmyadmin_config_check
-      tags:
-        - phpmyadmin
-
-    - name: phpMyAdmin present
-      include_tasks: phpmyadmin.yml
-      when: ( phpmyadmin_config_check is defined ) and ( phpmyadmin_config_check.stat.exists == True )
       tags:
         - phpmyadmin
 
     - name: Include additional install tasks
       include_tasks: install.yml
       when: ( phpmyadmin_config_check is defined ) and ( phpmyadmin_config_check.stat.exists == False )
+      tags:
+        - phpmyadmin
+
+    - name: robots.txt in place
+      copy:
+        src: robots.txt
+        dest: "{{ phpmyadmin_html }}/robots.txt"
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_user }}"
+        mode: "0644"
       tags:
         - phpmyadmin
 
@@ -100,5 +109,4 @@
         - phpmyadmin
 
   when: '"no such user" not in phpmyadmin_user_check.stderr'
-
 ...

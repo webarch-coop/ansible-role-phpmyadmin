@@ -1,4 +1,15 @@
 ---
+- name: "Write phpmyadmin_version variable to {{ phpmyadmin_version_file }}"
+  template:
+    src: templates/VERSION.j2
+    dest: "{{ phpmyadmin_version_file }}"
+    owner: "{{ phpmyadmin_user }}"
+    group: "{{ phpmyadmin_user }}"
+    mode: 0644
+  register: phpmyadmin_version_file
+  tags:
+    - phpmyadmin
+
 # https://docs.phpmyadmin.net/en/latest/setup.html#installing-from-git
 - name: phpMyAdmin repo present
   git:
@@ -6,9 +17,9 @@
     dest: "{{ phpmyadmin_html }}"
     version: "{{ phpmyadmin_version }}"
     clone: true
-    force: false
+    update: true
+    force: true
     verify_commit: true
-    register: phpmyadmin_git
   tags:
     - phpmyadmin
 
@@ -21,7 +32,7 @@
   tags:
     - phpmyadmin
 
-- name: When the git repo has changed
+- name: When phpmyadmin_version_file has changed
   block:
 
     - name: composer update for phpMyAdmin
@@ -39,11 +50,14 @@
         chdir: "{{ phpmyadmin_html }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
+      when: '"RELEASE_5" in phpmyadmin_version'
       tags:
         - phpmyadmin
 
     - name: yarn install for phpMyAdmin
       command: yarn install
+      register: phpmyadmin_yarn_install
+      changed_when: '"Already up-to-date." not in phpmyadmin_yarn_install.stdout'
       args:
         chdir: "{{ phpmyadmin_html }}"
       become: true
@@ -51,7 +65,7 @@
       tags:
         - phpmyadmin
 
-  when: phpmyadmin_git.changed
+  when: phpmyadmin_version_file is changed
 
 - name: .htaccess in place
   copy:
@@ -60,72 +74,47 @@
   tags:
     - phpmyadmin
 
-- name: Directories for saves and uploads present
-  file:
-    path: "{{ dir }}"
-    state: directory
-  loop:
-    - "{{ phpmyadmin_html_upload_dir }}"
-    - "{{ phpmyadmin_html_save_dir }}"
-  loop_control:
-    loop_var: dir
+# https://docs.phpmyadmin.net/en/latest/config.html#web-dirs
+- name: Get a list of sub-directories
+  shell: find . -maxdepth 1 -type d | grep -v ^\.$ | sed 's/\.\///' | grep -v ^js$ | grep -v ^themes$ | grep -v ^vendor$
+  args:
+    chdir: "{{ phpmyadmin_html }}"
+  become: true
+  become_user: "{{ phpmyadmin_user }}"
+  changed_when: false
+  register: phpmyadmin_subdirs
   tags:
     - phpmyadmin
 
-- name: .htaccess in place to deny direct access to sub-directories
+- name: .htaccess files in place to deny direct access to sub-directories
   copy:
     src: files/htaccess.deny
-    dest: "{{ dir }}/.htaccess"
-  loop:
-    - "{{ phpmyadmin_html_upload_dir }}"
-    - "{{ phpmyadmin_html_save_dir }}"
-    - "{{ phpmyadmin_html }}/doc" 
-    - "{{ phpmyadmin_html }}/examples"
-    - "{{ phpmyadmin_html }}/js"
-    - "{{ phpmyadmin_html }}/libraries"
-    - "{{ phpmyadmin_html }}/node_modules"
-    - "{{ phpmyadmin_html }}/po"
-    - "{{ phpmyadmin_html }}/scripts"
-    - "{{ phpmyadmin_html }}/setup"
-    - "{{ phpmyadmin_html }}/sql"
-    - "{{ phpmyadmin_html }}/templates"
-    - "{{ phpmyadmin_html }}/test"
-    - "{{ phpmyadmin_html }}/themes"
-    - "{{ phpmyadmin_html }}/tmp"
-    - "{{ phpmyadmin_html }}/vendor"
+    dest: "{{ phpmyadmin_html }}/{{ dir }}/.htaccess"
+  loop: "{{ phpmyadmin_subdirs.stdout_lines }}"
   loop_control:
     loop_var: dir
   tags:
     - phpmyadmin
 
-- name: Stat the blowfish secret file
-  stat:
-    path: "{{ phpmyadmin_private }}/blowfish_secret.inc.php"
-  register: phpmyadmin_private_blowfish_secret_file
+- name: Generate blowfish secret for cookies
+  shell: "pwgen -sn 32 1 > {{ phpmyadmin_blowfish_file }} && chmod 400 {{ phpmyadmin_blowfish_file }}"
+  args:
+    creates: "{{ phpmyadmin_blowfish_file }}"
+  become: true
+  become_user: "{{ phpmyadmin_user }}"
   tags:
     - phpmyadmin
 
-- name: Generate the blowfish secret file
-  block:
+- name: Set a variable for the base64 encoded .blowfish.secret value
+  slurp:
+    src: "{{ phpmyadmin_blowfish_file }}"
+  register: phpmyadmin_blowfish_b64encoded
+  tags:
+    - phpmyadmin
 
-    - name: Generate blowfish secret for cookies
-      command: pwgen -sn 32 1
-      register: phpmyadmin_blowfish_gen
-      tags:
-        - phpmyadmin
-
-    - name: Set a fact for the blowfish secret
-      set_fact:
-        phpmyadmin_blowfish_secret: "{{ phpmyadmin_blowfish_gen.stdout }}"
-      tags:
-        - phpmyadmin
-
-    - name: Blowfish secret file present
-      template:
-        src: templates/blowfish_secret.inc.php.j2
-        dest: "{{ phpmyadmin_private }}/blowfish_secret.inc.php"
-      tags:
-        - phpmyadmin
-
-  when: phpmyadmin_private_blowfish_secret_file.stat.exists == False
+- name: Set a fact for the blowfish secret
+  set_fact:
+    phpmyadmin_blowfish_secret: "{{ phpmyadmin_blowfish_b64encoded['content'] | b64decode | trim }}"
+  tags:
+    - phpmyadmin
 ...

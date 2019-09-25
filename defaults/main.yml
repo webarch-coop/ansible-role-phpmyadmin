@@ -1,6 +1,9 @@
 ---
+# Use a release tag from this page for the version
 # https://github.com/phpmyadmin/phpmyadmin/releases
-phpmyadmin_version: "RELEASE_5_0_0ALPHA1"
+phpmyadmin_version: "RELEASE_4_9_1"
+# 2fa is available with version 5
+# phpmyadmin_version: "RELEASE_5_0_0ALPHA1"
 phpmyadmin_user: phpmyadmin
 phpmyadmin_db: "{{ phpmyadmin_user }}"
 phpmyadmin_db_user: "{{ phpmyadmin_user }}"
@@ -9,10 +12,13 @@ phpmyadmin_db_host: localhost
 phpmyadmin_db_port: 3306
 phpmyadmin_home: "/home/{{ phpmyadmin_user }}"
 phpmyadmin_private: "/home/{{ phpmyadmin_user }}/private"
+phpmyadmin_version_file: "{{ phpmyadmin_private }}/VERSION"
+phpmyadmin_blowfish_file: "{{ phpmyadmin_private }}/.blowfish.secret"
 phpmyadmin_html: "/home/{{ phpmyadmin_user }}/sites/default"
-phpmyadmin_html_upload_dir: "{{ phpmyadmin_html }}/uploads"
-phpmyadmin_html_save_dir: "{{ phpmyadmin_saves }}/saves"
 phpmyadmin_default_lang: "en"
+phpmyadmin_deny_root: true
+phpmyadmin_deny_users:
+  - "{{ phpmyadmin_user }}"
 # Set these variables for https://git.coop/webarch/website-templates
 # phpmyadmin_domain:
 # phpmyadmin_path: 
