@@ -63,6 +63,7 @@
 
     - name: Check if a Debian package is installed
       shell: "aptitude versions phpmyadmin | grep -q ^i && echo INSTALLED || echo NOTFOUND"
+      check_mode: false
       register: phpmyadmin_debian_installed
       tags:
         - phpmyadmin
@@ -81,6 +82,7 @@
     - name: Check for config.inc.php
       stat:
         path: "{{ phpmyadmin_html }}/config.inc.php"
+      check_mode: false
       register: phpmyadmin_config_check
       tags:
         - phpmyadmin
