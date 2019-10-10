@@ -35,6 +35,7 @@
 - name: Check if Composer needs to be run
   shell: lynx -useragent "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0" -dump "{{ phpmyadmin_url }}" 2>/dev/null | grep -q "Most likely you did not run Composer" && echo "TRUE" || echo "FALSE"
   check_mode: false
+  changed_when: '"TRUE" in phpmyadmin_composer_run.stdout'
   register: phpmyadmin_composer_run
   when: ( phpmyadmin_url is defined ) and ( phpmyadmin_url != "" )
   tags:
