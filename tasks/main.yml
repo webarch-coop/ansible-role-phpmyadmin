@@ -65,6 +65,7 @@
       shell: "aptitude versions phpmyadmin | grep -q ^i && echo INSTALLED || echo NOTFOUND"
       check_mode: false
       register: phpmyadmin_debian_installed
+      changed_when: '"INSTALLED" in phpmyadmin_debian_installed.stdout'
       tags:
         - phpmyadmin
 
