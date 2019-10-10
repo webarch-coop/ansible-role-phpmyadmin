@@ -81,6 +81,7 @@
     chdir: "{{ phpmyadmin_html }}"
   become: true
   become_user: "{{ phpmyadmin_user }}"
+  check_mode: false
   changed_when: false
   register: phpmyadmin_subdirs
   tags:
@@ -102,6 +103,7 @@
     creates: "{{ phpmyadmin_blowfish_file }}"
   become: true
   become_user: "{{ phpmyadmin_user }}"
+  check_mode: false
   tags:
     - phpmyadmin
 
