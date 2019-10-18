@@ -19,7 +19,7 @@
     clone: true
     update: true
     force: true
-    verify_commit: true
+    verify_commit: "{{ phpmyadmin_verify_commit }}"
   tags:
     - phpmyadmin
 
