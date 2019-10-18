@@ -32,6 +32,16 @@
   tags:
     - phpmyadmin
 
+- name: Debug the HTTP Authentication username and password if provided
+  debug:
+    msg:
+      - "HTTP Authentication username: {{ phpmyadmin_htauth_user }}"
+      - "HTTP Authentication password: {{ phpmyadmin_htauth_pass }}"
+    verbosity: 1
+  when: ( phpmyadmin_htauth_user is defined ) and ( phpmyadmin_htauth_pass is defined )
+  tags:
+    - phpmyadmin
+
 - name: Check if Composer needs to be run
   shell: lynx {% if phpmyadmin_htauth_user is defined %}-auth={{ phpmyadmin_htauth_user }}:{{ phpmyadmin_htauth_pass }} {% endif %}-useragent "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0" -dump "{{ phpmyadmin_url }}" 2>/dev/null | grep -q "Most likely you did not run Composer" && echo "TRUE" || echo "FALSE"
   check_mode: false
