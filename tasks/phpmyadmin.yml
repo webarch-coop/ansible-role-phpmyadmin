@@ -32,20 +32,6 @@
   tags:
     - phpmyadmin
 
-# - name: Debug
-#   block:
-# 
-#     - name: Debug the HTTP Authentication username and password if provided
-#       debug:
-#         msg:
-#           - "HTTP Authentication username: {{ phpmyadmin_htauth_user }}"
-#           - "HTTP Authentication password: {{ phpmyadmin_htauth_pass }}"
-#         verbosity: 1
-#       tags:
-#         - phpmyadmin
-# 
-#   when: ( phpmyadmin_htauth_user is defined ) and ( phpmyadmin_htauth_pass is defined )
-
 - name: Debug
   block:
 
@@ -57,7 +43,7 @@
       tags:
         - phpmyadmin
 
-  when: phpmyadmin_htauth_user is defined
+  when: ( phpmyadmin_htauth_user is defined ) and ( phpmyadmin_htauth_user != "" )
 
 - name: Debug
   block:
@@ -70,10 +56,10 @@
       tags:
         - phpmyadmin
 
-  when: phpmyadmin_htauth_pass is defined
+  when: ( phpmyadmin_htauth_pass is defined ) and ( phpmyadmin_htauth_pass != "" )
 
 - name: Check if Composer needs to be run
-  shell: lynx {% if phpmyadmin_htauth_user is defined %}-auth={{ phpmyadmin_htauth_user }}:{{ phpmyadmin_htauth_pass }} {% endif %}-useragent "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0" -dump "{{ phpmyadmin_url }}" 2>/dev/null | grep -q "Most likely you did not run Composer" && echo "TRUE" || echo "FALSE"
+  shell: lynx {% if phpmyadmin_htauth_user is defined and phpmyadmin_htauth_user|length %}-auth={{ phpmyadmin_htauth_user }}:{{ phpmyadmin_htauth_pass }} {% endif %}-useragent "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0" -dump "{{ phpmyadmin_url }}" 2>/dev/null | grep -q "Most likely you did not run Composer" && echo "TRUE" || echo "FALSE"
   check_mode: false
   changed_when: '"TRUE" in phpmyadmin_composer_run.stdout'
   register: phpmyadmin_composer_run
