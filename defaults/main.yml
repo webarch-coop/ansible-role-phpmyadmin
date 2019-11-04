@@ -4,9 +4,7 @@
 phpmyadmin_version: "RELEASE_4_9_1"
 # 2fa is available with version 5
 # phpmyadmin_version: "RELEASE_5_0_0ALPHA1"
-# It is *very* slow doing a git clone with verify_commit, if you have spare time
-# set the following to true:
-phpmyadmin_verify_commit: false
+phpmyadmin_verify_commit: true
 phpmyadmin_user: phpmyadmin
 phpmyadmin_db: "{{ phpmyadmin_user }}"
 phpmyadmin_db_user: "{{ phpmyadmin_user }}"
