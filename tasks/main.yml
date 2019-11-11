@@ -1,4 +1,25 @@
 ---
+# TODO Additional checks on variables could be added
+- name: Check that required variables are defined
+  assert:
+    that:
+      - phpmyadmin_user is defined
+      - phpmyadmin_db is defined
+      - phpmyadmin_db_user is defined
+      - phpmyadmin_db_pass is defined
+      - phpmyadmin_db_socket is defined
+      - phpmyadmin_db_host is defined
+      - phpmyadmin_db_port is defined
+      - phpmyadmin_url is defined
+      - phpmyadmin_home is defined
+      - phpmyadmin_private is defined
+      - phpmyadmin_tmp is defined
+      - phpmyadmin_html is defined
+      - phpmyadmin_html_upload_dir is defined
+      - phpmyadmin_html_save_dir is defined
+  tags:
+    - phpmyadmin
+
 - name: Required packages present
   apt:
     pkg:

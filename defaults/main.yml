@@ -15,6 +15,7 @@ phpmyadmin_db_port: 3306
 # phpymadmin_url: "https://phpmyadmin.{{ inventroy_hostname }}"
 phpmyadmin_home: "/home/{{ phpmyadmin_user }}"
 phpmyadmin_private: "/home/{{ phpmyadmin_user }}/private"
+phpmyadmin_tmp: "/home/{{ phpmyadmin_user }}/tmp"
 phpmyadmin_version_file: "{{ phpmyadmin_private }}/VERSION"
 phpmyadmin_blowfish_file: "{{ phpmyadmin_private }}/.blowfish.secret"
 phpmyadmin_html: "/home/{{ phpmyadmin_user }}/sites/default"
