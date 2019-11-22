@@ -1,9 +1,9 @@
 ---
 # Use a release tag from this page for the version
 # https://github.com/phpmyadmin/phpmyadmin/releases
-phpmyadmin_version: "RELEASE_4_9_1"
+phpmyadmin_version: "RELEASE_4_9_2"
 # 2fa is available with version 5
-# phpmyadmin_version: "RELEASE_5_0_0ALPHA1"
+# phpmyadmin_version: "RELEASE_5_0_0RC1"
 phpmyadmin_verify_commit: true
 phpmyadmin_user: phpmyadmin
 phpmyadmin_db: "{{ phpmyadmin_user }}"
