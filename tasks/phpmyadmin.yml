@@ -16,6 +16,7 @@
     repo: https://github.com/phpmyadmin/phpmyadmin.git
     dest: "{{ phpmyadmin_html }}"
     version: "{{ phpmyadmin_version }}"
+    depth: 1
     clone: true
     update: true
     force: true
