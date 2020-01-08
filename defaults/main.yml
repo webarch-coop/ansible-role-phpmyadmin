@@ -1,7 +1,7 @@
 ---
 # Use a release tag from this page for the version
 # https://github.com/phpmyadmin/phpmyadmin/releases
-phpmyadmin_version: "RELEASE_5_0_0"
+phpmyadmin_version: "RELEASE_5_0_1"
 phpmyadmin_verify_commit: true
 phpmyadmin_user: phpmyadmin
 phpmyadmin_db: "{{ phpmyadmin_user }}"
