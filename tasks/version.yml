@@ -13,7 +13,9 @@
 
     - name: Debug loaded variables
       debug:
-        msg: "{{ phpmyadmin_vars }}"
+        msg:
+          - "{{ phpmyadmin_vars }}"
+          - "Version: {{ phpmyadmin_vars.version }}"
 
   tags:
     - phpmyadmin
