@@ -72,7 +72,7 @@
 
     - name: Load variables from package.json if it exists
       include_tasks: version.yml
-      when: ( phpmyadmin_package_json is defined ) and ( phpmyadmin_package_json.stat.exists ) 
+      when: ( phpmyadmin_package_json is defined ) and ( phpmyadmin_package_json.stat.exists )
 
     - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
       include_tasks: phpmyadmin.yml
