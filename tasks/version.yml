@@ -10,12 +10,13 @@
     - name: Set facts from package.json variables
       set_fact:
         phpmyadmin_vars: "{{ phpmyadmin_vars_b64encoded['content'] | b64decode | from_json }}"
+        phpmyadmin_installed_version: "{{ phpmyadmin_vars.version }}"
 
     - name: Debug loaded variables
       debug:
         msg:
           - "{{ phpmyadmin_vars }}"
-          - "Version: {{ phpmyadmin_vars.version }}"
+          - "Version: {{ phpmyadmin_installed_version }}"
 
   tags:
     - phpmyadmin
