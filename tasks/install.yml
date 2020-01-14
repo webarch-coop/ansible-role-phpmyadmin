@@ -16,8 +16,6 @@
         state: import
         target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
       when: phpmyadmin_debian_version is version_compare('4.1.2', '>=')
-      tags:
-        - phpmyadmin
 
     - name: upgrade_column_info_4_3_0+.sql
       mysql_db:
@@ -25,8 +23,6 @@
         state: import
         target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
       when: phpmyadmin_debian_version is version_compare('4.3.0', '>=')
-      tags:
-        - phpmyadmin
 
     - name: upgrade_tables_4_7_0+.sql
       mysql_db:
@@ -34,8 +30,8 @@
         state: import
         target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
       when: phpmyadmin_debian_version is version_compare('4.6.5', '>=')
-      tags:
-        - phpmyadmin
 
   when: phpmyadmin_debian_version is defined
+  tags:
+    - phpmyadmin
 ...

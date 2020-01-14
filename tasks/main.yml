@@ -54,66 +54,50 @@
         - .gnupg
       loop_control:
         loop_var: dir
-      tags:
-        - phpmyadmin
-
-    - name: The phpMyAdmin GPG public key is present
-      copy:
-        src: files/phpmyadmin.pub
-        dest: "{{ phpmyadmin_private }}/phpmyadmin.pub"
-      become: true
-      become_user: "{{ phpmyadmin_user }}"
-      tags:
-        - phpmyadmin
-
-    - name: "phpMyAdmin GPG public key imported for {{ phpmyadmin_user }}"
-      command: "gpg --no-tty --import {{ phpmyadmin_private }}/phpmyadmin.pub"
-      register: phpmyadmin_gpg_key_import
-      changed_when: "'not changed' not in phpmyadmin_gpg_key_import.stderr"
-      become: true
-      become_user: "{{ phpmyadmin_user }}"
-      tags:
-        - phpmyadmin
-
-    - name: "phpMyAdmin GPG public key imported for root"
-      command: "gpg --no-tty --import {{ phpmyadmin_private }}/phpmyadmin.pub"
-      register: phpmyadmin_gpg_key_import_root
-      changed_when: "'not changed' not in phpmyadmin_gpg_key_import_root.stderr"
-      tags:
-        - phpmyadmin
 
     - name: Check if a Debian package is installed
       shell: "aptitude versions phpmyadmin | grep -q ^i && echo INSTALLED || echo NOTFOUND"
       check_mode: false
       register: phpmyadmin_debian_installed
       changed_when: '"INSTALLED" in phpmyadmin_debian_installed.stdout'
-      tags:
-        - phpmyadmin
 
     - name: Upgrade from a Debian package version
       include_tasks: upgrade_from_deb.yml
       when: ( phpmyadmin_debian_installed is defined ) and ( phpmyadmin_debian_installed.stdout == "INSTALLED" )
+
+    - name: Check for package.json
+      stat:
+        path: "{{ phpmyadmin_html }}/package.json"
+      register: phpmyadmin_package_json
+
+    - name: Load variables from package.json if it exists
+      block:
+
+        - name: Local package.json variables
+          include_vars:
+            file: "{{ phpmyadmin_html }}/package.json"
+            name: phpmyadmin_vars
+
+        - name: Debug loaded variables
+          debug:
+            msg: "{{ phpmyadmin_vars }}" 
+
+      when: ( phpmyadmin_package_json is defined ) and ( phpmyadmin_package_json.stat.exists ) 
       tags:
         - phpmyadmin
 
-    - name: Include tasks to ensure that the phpMyAdmin source code is present
+    - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
       include_tasks: phpmyadmin.yml
-      tags:
-        - phpmyadmin
 
     - name: Check for config.inc.php
       stat:
         path: "{{ phpmyadmin_html }}/config.inc.php"
       check_mode: false
       register: phpmyadmin_config_check
-      tags:
-        - phpmyadmin
 
     - name: Include additional install tasks
       include_tasks: install.yml
       when: ( phpmyadmin_config_check is defined ) and ( phpmyadmin_config_check.stat.exists == False )
-      tags:
-        - phpmyadmin
 
     - name: robots.txt in place
       copy:
@@ -122,15 +106,13 @@
         owner: "{{ phpmyadmin_user }}"
         group: "{{ phpmyadmin_user }}"
         mode: "0644"
-      tags:
-        - phpmyadmin
 
     - name: Generate the config.inc.php file
       template:
         src: templates/config.inc.php.j2
         dest: "{{ phpmyadmin_html }}/config.inc.php"
-      tags:
-        - phpmyadmin
 
   when: '"no such user" not in phpmyadmin_user_check.stderr'
+  tags:
+    - phpmyadmin
 ...
