@@ -9,7 +9,7 @@
 
     - name: Set facts from package.json variables
       set_fact:
-        phpmyadmin_vars: "{{ [phpmyadmin_vars_b64encoded'content'] | b64decode | to_yaml }}"
+        phpmyadmin_vars: "{{ [phpmyadmin_vars_b64encoded'content'] | b64decode | from_json }}"
 
     - name: Debug loaded variables
       debug:
