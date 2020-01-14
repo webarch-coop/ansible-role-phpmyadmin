@@ -68,7 +68,6 @@
     - name: Check for package.json
       stat:
         path: "{{ phpmyadmin_html }}/package.json"
-        remote_src: true
       register: phpmyadmin_package_json
 
     - name: Load variables from package.json if it exists
@@ -76,8 +75,9 @@
 
         - name: Local package.json variables
           include_vars:
-            file: "{{ phpmyadmin_html }}/package.json"
             name: phpmyadmin_vars
+            file: "{{ phpmyadmin_html }}/package.json"
+            remote_src: true
 
         - name: Debug loaded variables
           debug:
