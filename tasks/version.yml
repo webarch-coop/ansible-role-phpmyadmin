@@ -1,0 +1,20 @@
+---
+- name: Check the version of phpMyAdmin installed
+  block:
+
+    - name: Slurp package.json
+      slurp:
+        src: "{{ phpmyadmin_html }}/package.json"
+      register: phpmyadmin_vars_b64encoded
+
+    - name: Set facts from package.json variables
+      set_fact:
+        phpmyadmin_vars: "{{ [phpmyadmin_vars_b64encoded'content'] | b64decode | to_yaml }}"
+
+    - name: Debug loaded variables
+      debug:
+        msg: "{{ phpmyadmin_vars }}"
+
+  tags:
+    - phpmyadmin
+...

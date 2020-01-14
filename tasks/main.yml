@@ -71,21 +71,8 @@
       register: phpmyadmin_package_json
 
     - name: Load variables from package.json if it exists
-      block:
-
-        - name: Local package.json variables
-          include_vars:
-            name: phpmyadmin_vars
-            file: "{{ phpmyadmin_html }}/package.json"
-            remote_src: true
-
-        - name: Debug loaded variables
-          debug:
-            msg: "{{ phpmyadmin_vars }}" 
-
+      include_tasks: version.yml
       when: ( phpmyadmin_package_json is defined ) and ( phpmyadmin_package_json.stat.exists ) 
-      tags:
-        - phpmyadmin
 
     - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
       include_tasks: phpmyadmin.yml
