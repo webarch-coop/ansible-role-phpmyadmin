@@ -4,6 +4,7 @@
     pkg:
       - aptitude
       - git
+      - gnupg
       - pwgen
     state: present
   tags:
