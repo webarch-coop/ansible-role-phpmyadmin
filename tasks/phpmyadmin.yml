@@ -26,7 +26,7 @@
 - name: phpMyAdmin repo present
   git:
     repo: https://github.com/phpmyadmin/phpmyadmin.git
-    dest: "{{ phpmyadmin_html }}"
+    dest: "{{ phpmyadmin_docroot }}"
     version: "{{ phpmyadmin_version }}"
     depth: 1
     clone: true
@@ -38,7 +38,7 @@
 
 - name: Chown the files
   file:
-    path: "{{ phpmyadmin_html }}"
+    path: "{{ phpmyadmin_docroot }}"
     recurse: true
     owner: "{{ phpmyadmin_user }}"
     group: "{{ phpmyadmin_user }}"
@@ -86,7 +86,7 @@
     - name: composer update for phpMyAdmin
       command: composer update --no-dev
       args:
-        chdir: "{{ phpmyadmin_html }}"
+        chdir: "{{ phpmyadmin_docroot }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
       tags:
@@ -95,7 +95,7 @@
     - name: composer packages for two factor authentication present
       command: composer require pragmarx/google2fa-qrcode
       args:
-        chdir: "{{ phpmyadmin_html }}"
+        chdir: "{{ phpmyadmin_docroot }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
       when: '"RELEASE_5" in phpmyadmin_version'
@@ -107,7 +107,7 @@
       register: phpmyadmin_yarn_install
       changed_when: '"Already up-to-date." not in phpmyadmin_yarn_install.stdout'
       args:
-        chdir: "{{ phpmyadmin_html }}"
+        chdir: "{{ phpmyadmin_docroot }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
       tags:
@@ -118,7 +118,7 @@
 - name: .htaccess in place
   copy:
     src: files/htaccess.root
-    dest: "{{ phpmyadmin_html }}/.htaccess"
+    dest: "{{ phpmyadmin_docroot }}/.htaccess"
   tags:
     - phpmyadmin
 
@@ -126,7 +126,7 @@
 - name: Get a list of sub-directories
   shell: find . -maxdepth 1 -type d | grep -v ^\.$ | sed 's/\.\///' | grep -v ^js$ | grep -v ^themes$ | grep -v ^vendor$
   args:
-    chdir: "{{ phpmyadmin_html }}"
+    chdir: "{{ phpmyadmin_docroot }}"
   become: true
   become_user: "{{ phpmyadmin_user }}"
   check_mode: false
@@ -138,7 +138,7 @@
 - name: .htaccess files in place to deny direct access to sub-directories
   copy:
     src: files/htaccess.deny
-    dest: "{{ phpmyadmin_html }}/{{ dir }}/.htaccess"
+    dest: "{{ phpmyadmin_docroot }}/{{ dir }}/.htaccess"
   loop: "{{ phpmyadmin_subdirs.stdout_lines }}"
   loop_control:
     loop_var: dir
@@ -146,9 +146,9 @@
     - phpmyadmin
 
 - name: Generate blowfish secret for cookies
-  shell: "pwgen -sn 32 1 > {{ phpmyadmin_blowfish_file }} && chmod 400 {{ phpmyadmin_blowfish_file }}"
+  shell: "pwgen -sn 32 1 > {{ phpmyadmin_private }}/.blowfish.secret && chmod 400 {{ phpmyadmin_private }}/.blowfish.secret"
   args:
-    creates: "{{ phpmyadmin_blowfish_file }}"
+    creates: "{{ phpmyadmin_private }}/.blowfish.secret"
   become: true
   become_user: "{{ phpmyadmin_user }}"
   check_mode: false
@@ -157,7 +157,7 @@
 
 - name: Set a variable for the base64 encoded .blowfish.secret value
   slurp:
-    src: "{{ phpmyadmin_blowfish_file }}"
+    src: "{{ phpmyadmin_private }}/.blowfish.secret"
   register: phpmyadmin_blowfish_b64encoded
   tags:
     - phpmyadmin

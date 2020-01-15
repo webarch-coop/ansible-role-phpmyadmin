@@ -1,22 +1,22 @@
 ---
 # Use a release tag from this page for the version
 # https://github.com/phpmyadmin/phpmyadmin/releases
-phpmyadmin_version: "RELEASE_5_0_1"
+# phpmyadmin_version: "RELEASE_5_0_1"
+phpmyadmin_version: 5.0.1
 phpmyadmin_verify_commit: true
 phpmyadmin_user: phpmyadmin
-phpmyadmin_db: "{{ phpmyadmin_user }}"
-phpmyadmin_db_user: "{{ phpmyadmin_user }}"
-phpmyadmin_db_socket: /var/run/mysqld/mysqld.sock
-phpmyadmin_db_host: localhost
-phpmyadmin_db_port: 3306
+phpmyadmin_dbname: "{{ phpmyadmin_user }}"
+phpmyadmin_dbuser: "{{ phpmyadmin_user }}"
+phpmyadmin_dbhost: localhost
+phpmyadmin_dbport: 3306
+phpmyadmin_dbsocket: /var/run/mysqld/mysqld.sock
 # Set this to enable the the check to see if Composer needs to be run
 # phpymadmin_url: "https://phpmyadmin.{{ inventory_hostname }}"
-phpmyadmin_home: "/home/{{ phpmyadmin_user }}"
-phpmyadmin_private: "/home/{{ phpmyadmin_user }}/private"
-phpmyadmin_tmp: "/home/{{ phpmyadmin_user }}/tmp"
+phpmyadmin_home: "/var/www"
+phpmyadmin_private: "{{ phpmyadmin_home }}"
+phpmyadmin_tmp: "/tmp"
 phpmyadmin_version_file: "{{ phpmyadmin_private }}/VERSION"
-phpmyadmin_blowfish_file: "{{ phpmyadmin_private }}/.blowfish.secret"
-phpmyadmin_html: "/home/{{ phpmyadmin_user }}/sites/default"
+phpmyadmin_docroot: "{{ phpmyadmin_home }}/{{ phpmyadmin_user }}"
 phpmyadmin_default_lang: "en"
 phpmyadmin_deny_root: true
 phpmyadmin_deny_users:

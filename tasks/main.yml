@@ -1,15 +1,20 @@
 ---
+- name: Include backwards compatibility tasks
+  include_tasks: compat.yml
+  tags:
+    - phpmyadmin
+
 # TODO Additional checks on variables could be added
 - name: Check that required variables are defined
   assert:
     that:
       - phpmyadmin_user is defined
-      - phpmyadmin_db is defined
-      - phpmyadmin_db_user is defined
-      - phpmyadmin_db_pass is defined
-      - phpmyadmin_db_socket is defined
-      - phpmyadmin_db_host is defined
-      - phpmyadmin_db_port is defined
+      - phpmyadmin_dbname is defined
+      - phpmyadmin_dbuser is defined
+      - phpmyadmin_dbpass is defined
+      - phpmyadmin_dbhost is defined
+      - phpmyadmin_dbport is defined
+      - phpmyadmin_dbsocket is defined
       - phpmyadmin_url is defined
       - phpmyadmin_home is defined
       - phpmyadmin_private is defined
@@ -73,6 +78,14 @@
     - name: Load variables from package.json if it exists
       include_tasks: version.yml
       when: ( phpmyadmin_package_json is defined ) and ( phpmyadmin_package_json.stat.exists )
+
+    - name: Convert the phpMyAdmin version string to a git tag
+      set_fact:
+        phpmyadmin_git_tag: "{{ phpmyadmin_version | regex_replace('^', 'RELEASE_') | regex_replace('[.]', '_')"
+
+    - name: Debug git tag
+      debug:
+        msg: "Proposed git tag: {{ phpmyadmin_git_tag }}"
 
     - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
       include_tasks: phpmyadmin.yml
