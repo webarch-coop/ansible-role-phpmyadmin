@@ -1,7 +1,7 @@
 ---
-# Use a version number from this page 
+# Use a version number from this page
 # https://github.com/phpmyadmin/phpmyadmin/releases
-# this will be automatically changed into a git tag 
+# this will be automatically changed into a git tag
 phpmyadmin_version: 5.0.1
 phpmyadmin_user: phpmyadmin
 phpmyadmin_dbname: "{{ phpmyadmin_user }}"
