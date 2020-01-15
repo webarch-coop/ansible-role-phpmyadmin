@@ -1,25 +1,4 @@
 ---
-# TODO Additional checks on variables could be added
-- name: Check that required variables are defined
-  assert:
-    that:
-      - phpmyadmin_user is defined
-      - phpmyadmin_db is defined
-      - phpmyadmin_db_user is defined
-      - phpmyadmin_db_pass is defined
-      - phpmyadmin_db_socket is defined
-      - phpmyadmin_db_host is defined
-      - phpmyadmin_db_port is defined
-      - phpmyadmin_url is defined
-      - phpmyadmin_home is defined
-      - phpmyadmin_private is defined
-      - phpmyadmin_tmp is defined
-      - phpmyadmin_html is defined
-      - phpmyadmin_html_upload_dir is defined
-      - phpmyadmin_html_save_dir is defined
-  tags:
-    - phpmyadmin
-
 - name: Required packages present
   apt:
     pkg:
@@ -28,6 +7,33 @@
       - gnupg
       - pwgen
     state: present
+  tags:
+    - phpmyadmin
+
+# TODO Omit this when everything has been updated
+- name: Include backwards compatibility tasks
+  include_tasks: compat.yml
+  tags:
+    - phpmyadmin
+
+# TODO Additional checks on variables could be added
+- name: Check that required variables are defined
+  assert:
+    that:
+      - phpmyadmin_user is defined
+      - phpmyadmin_version is defined
+      - phpmyadmin_dbname is defined
+      - phpmyadmin_dbuser is defined
+      - phpmyadmin_dbpass is defined
+      - phpmyadmin_dbhost is defined
+      - phpmyadmin_dbport is defined
+      - phpmyadmin_dbsocket is defined
+      - phpmyadmin_url is defined
+      - phpmyadmin_home is defined
+      - phpmyadmin_tmp is defined
+      - phpmyadmin_private is defined
+      - phpmyadmin_docroot is defined
+      - phpmyadmin_lang is defined
   tags:
     - phpmyadmin
 
@@ -42,19 +48,6 @@
 - name: Only install or upgrade phpMyAdmin if the user account exists
   block:
 
-    - name: Required directories present
-      file:
-        path: "{{ phpmyadmin_home }}/{{ dir }}"
-        state: directory
-        owner: "{{ phpmyadmin_user }}"
-        group: "{{ phpmyadmin_user }}"
-        mode: 0700
-      loop:
-        - .ansible
-        - .gnupg
-      loop_control:
-        loop_var: dir
-
     - name: Check if a Debian package is installed
       shell: "aptitude versions phpmyadmin | grep -q ^i && echo INSTALLED || echo NOTFOUND"
       check_mode: false
@@ -67,39 +60,26 @@
 
     - name: Check for package.json
       stat:
-        path: "{{ phpmyadmin_html }}/package.json"
+        path: "{{ phpmyadmin_docroot }}/package.json"
       register: phpmyadmin_package_json
 
-    - name: Load variables from package.json if it exists
-      include_tasks: version.yml
+    - name: When phpMyAdmin is already installed upgrade if needed
+      block:
+
+        - name: Load variables from package.json if it exists
+          include_tasks: version.yml
+
+        - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
+          include_tasks: phpmyadmin.yml
+          when: ( phpmyadmin_installed_version is defined ) and ( phpmyadmin_installed_version != phpmyadmin_version )
+
       when: ( phpmyadmin_package_json is defined ) and ( phpmyadmin_package_json.stat.exists )
+      tags:
+        - phpmyadmin
 
     - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
       include_tasks: phpmyadmin.yml
-      when: ( not phpmyadmin_package_json.stat.exists ) or ( phpmyadmin_installed_version is defined and phpmyadmin_installed_version != phpmyadmin_version )
-
-    - name: Check for config.inc.php
-      stat:
-        path: "{{ phpmyadmin_html }}/config.inc.php"
-      check_mode: false
-      register: phpmyadmin_config_check
-
-    - name: Include additional install tasks
-      include_tasks: install.yml
-      when: ( phpmyadmin_config_check is defined ) and ( phpmyadmin_config_check.stat.exists == False )
-
-    - name: robots.txt in place
-      copy:
-        src: robots.txt
-        dest: "{{ phpmyadmin_html }}/robots.txt"
-        owner: "{{ phpmyadmin_user }}"
-        group: "{{ phpmyadmin_user }}"
-        mode: "0644"
-
-    - name: Generate the config.inc.php file
-      template:
-        src: templates/config.inc.php.j2
-        dest: "{{ phpmyadmin_html }}/config.inc.php"
+      when: ( phpmyadmin_package_json is not defined ) or ( phpmyadmin_package_json.stat.exists == False )
 
   when: '"no such user" not in phpmyadmin_user_check.stderr'
   tags:
