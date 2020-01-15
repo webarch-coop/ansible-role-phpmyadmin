@@ -3,15 +3,15 @@
 # https://github.com/phpmyadmin/phpmyadmin/releases
 # this will be automatically changed into a git tag
 phpmyadmin_version: 5.0.1
-phpmyadmin_user: phpmyadmin
-phpmyadmin_dbname: "{{ phpmyadmin_user }}"
-phpmyadmin_dbuser: "{{ phpmyadmin_user }}"
+phpmyadmin_user: www-data
+phpmyadmin_dbname: phpmyadmin
+phpmyadmin_dbuser: phpmyadmin
 phpmyadmin_dbhost: localhost
 phpmyadmin_dbport: 3306
 phpmyadmin_dbsocket: /var/run/mysqld/mysqld.sock
 phpmyadmin_home: "/var/www"
 phpmyadmin_private: "{{ phpmyadmin_home }}"
-phpmyadmin_docroot: "{{ phpmyadmin_home }}/{{ phpmyadmin_user }}"
+phpmyadmin_docroot: "{{ phpmyadmin_home }}/phpmyadmin"
 phpmyadmin_tmp: "/tmp"
 phpmyadmin_lang: "en"
 phpmyadmin_deny_root: true
