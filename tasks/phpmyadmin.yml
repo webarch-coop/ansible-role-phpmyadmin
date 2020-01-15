@@ -29,9 +29,6 @@
       debug:
         msg: "Proposed git tag: {{ phpmyadmin_git_tag }}"
 
-    - fail:
-        msg: Debug
-
     # https://docs.phpmyadmin.net/en/latest/setup.html#installing-from-git
     - name: phpMyAdmin repo present
       git:

@@ -10,6 +10,7 @@
   tags:
     - phpmyadmin
 
+# TODO Omit this when everything has been updated
 - name: Include backwards compatibility tasks
   include_tasks: compat.yml
   tags:
@@ -67,7 +68,7 @@
 
     - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
       include_tasks: phpmyadmin.yml
-      when: ( not phpmyadmin_package_json.stat.exists ) or ( phpmyadmin_installed_version is defined and phpmyadmin_installed_version != phpmyadmin_version )
+      when: ( phpmyadmin_package_json is not defined ) or ( phpmyadmin_package_json.stat.exists == False ) or ( phpmyadmin_installed_version is defined and phpmyadmin_installed_version != phpmyadmin_version )
 
   when: '"no such user" not in phpmyadmin_user_check.stderr'
   tags:
