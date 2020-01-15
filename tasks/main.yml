@@ -21,6 +21,7 @@
   assert:
     that:
       - phpmyadmin_user is defined
+      - phpmyadmin_version is defined
       - phpmyadmin_dbname is defined
       - phpmyadmin_dbuser is defined
       - phpmyadmin_dbpass is defined

@@ -49,16 +49,19 @@
         group: "{{ phpmyadmin_user }}"
 
     - name: composer update for phpMyAdmin
-      command: composer update --no-dev
-      args:
-        chdir: "{{ phpmyadmin_docroot }}"
+      composer:
+        command: update
+        no_dev: true
+        working_dir: "{{ phpmyadmin_docroot }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
 
     - name: composer packages for two factor authentication present
-      command: composer require pragmarx/google2fa-qrcode
-      args:
-        chdir: "{{ phpmyadmin_docroot }}"
+      composer:
+        command: require 
+        arguments: pragmarx/google2fa-qrcode
+        no_dev: true
+        working_dir: "{{ phpmyadmin_docroot }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
 
