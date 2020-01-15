@@ -62,13 +62,23 @@
         path: "{{ phpmyadmin_docroot }}/package.json"
       register: phpmyadmin_package_json
 
-    - name: Load variables from package.json if it exists
-      include_tasks: version.yml
+    - name: When phpMyAdmin is already installed upgrade if needed
+      block:
+
+        - name: Load variables from package.json if it exists
+          include_tasks: version.yml
+
+        - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
+          include_tasks: phpmyadmin.yml
+          when: ( phpmyadmin_installed_version is defined ) and ( phpmyadmin_installed_version != phpmyadmin_version )
+
       when: ( phpmyadmin_package_json is defined ) and ( phpmyadmin_package_json.stat.exists )
+      tags:
+        - phpmyadmin
 
     - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
       include_tasks: phpmyadmin.yml
-      when: ( phpmyadmin_package_json is not defined ) or ( phpmyadmin_package_json.stat.exists == False ) or ( phpmyadmin_installed_version is defined and phpmyadmin_installed_version != phpmyadmin_version )
+      when: ( phpmyadmin_package_json is not defined ) or ( phpmyadmin_package_json.stat.exists == False )
 
   when: '"no such user" not in phpmyadmin_user_check.stderr'
   tags:
