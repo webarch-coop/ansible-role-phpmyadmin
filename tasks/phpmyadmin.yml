@@ -27,7 +27,7 @@
 
     - name: Debug git tag
       debug:
-        msg: "Proposed git tag: {{ phpmyadmin_git_tag }}"o
+        msg: "Proposed git tag: {{ phpmyadmin_git_tag }}"
 
     - fail:
         msg: Debug
