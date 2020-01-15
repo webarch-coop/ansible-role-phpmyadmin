@@ -1,87 +1,41 @@
 ---
-# - name: Convert the phpMyAdmin version string to a git tag
-#   set_fact:
-#     phpmyadmin_git_tag: "{{ phpmyadmin_version | regex_replace('^', 'RELEASE_') | regex_replace('[.]', '_')"
-#   tags:
-#     - phpmyadmin
-#
-# - name: Debug git tag
-#   debug:
-#     msg: "Proposed git tag: {{ phpmyadmin_git_tag }}"
-#   tags:
-#     - phpmyadmin
-
-- name: "Write phpmyadmin_version variable to {{ phpmyadmin_version_file }}"
-  template:
-    src: templates/VERSION.j2
-    dest: "{{ phpmyadmin_version_file }}"
-    owner: "{{ phpmyadmin_user }}"
-    group: "{{ phpmyadmin_user }}"
-    mode: 0644
-  register: phpmyadmin_version_file
-  tags:
-    - phpmyadmin
-
-# https://docs.phpmyadmin.net/en/latest/setup.html#installing-from-git
-- name: phpMyAdmin repo present
-  git:
-    repo: https://github.com/phpmyadmin/phpmyadmin.git
-    dest: "{{ phpmyadmin_docroot }}"
-    version: "{{ phpmyadmin_git_tag }}"
-    depth: 1
-    clone: true
-    update: true
-    force: true
-    verify_commit: "{{ phpmyadmin_verify_commit }}"
-  tags:
-    - phpmyadmin
-
-- name: Chown the files
-  file:
-    path: "{{ phpmyadmin_docroot }}"
-    recurse: true
-    owner: "{{ phpmyadmin_user }}"
-    group: "{{ phpmyadmin_user }}"
-  tags:
-    - phpmyadmin
-
-- name: Debug
+- name: Download and install phpMyAdmin
   block:
 
-    - name: Debug the HTTP Authentication username if provided
+    - name: Ansible directory present
+      file:
+        path: "{{ phpmyadmin_home }}/.ansible"
+        state: directory
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_user }}"
+        mode: 0700
+
+    - name: Convert the phpMyAdmin version string to a git tag
+      set_fact:
+        phpmyadmin_git_tag: "{{ phpmyadmin_version | regex_replace('^', 'RELEASE_') | regex_replace('[.]', '_')"
+
+    - name: Debug git tag
       debug:
-        msg:
-          - "HTTP Authentication username: {{ phpmyadmin_htauth_user }}"
-        verbosity: 1
-      tags:
-        - phpmyadmin
+        msg: "Proposed git tag: {{ phpmyadmin_git_tag }}"
 
-  when: ( phpmyadmin_htauth_user is defined ) and ( phpmyadmin_htauth_user != "" )
+    # https://docs.phpmyadmin.net/en/latest/setup.html#installing-from-git
+    - name: phpMyAdmin repo present
+      git:
+        repo: https://github.com/phpmyadmin/phpmyadmin.git
+        dest: "{{ phpmyadmin_docroot }}"
+        version: "{{ phpmyadmin_git_tag }}"
+        depth: 1
+        clone: true
+        update: true
+        force: true
+        verify_commit: "{{ phpmyadmin_verify_commit }}"
 
-- name: Debug
-  block:
-
-    - name: Debug the HTTP Authentication password if provided
-      debug:
-        msg:
-          - "HTTP Authentication password: {{ phpmyadmin_htauth_pass }}"
-        verbosity: 1
-      tags:
-        - phpmyadmin
-
-  when: ( phpmyadmin_htauth_pass is defined ) and ( phpmyadmin_htauth_pass != "" )
-
-- name: Check if Composer needs to be run
-  shell: lynx {% if phpmyadmin_htauth_user is defined and phpmyadmin_htauth_user|length %}-auth={{ phpmyadmin_htauth_user }}:{{ phpmyadmin_htauth_pass }} {% endif %}-useragent "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0" -dump "{{ phpmyadmin_url }}" 2>/dev/null | grep -q "Most likely you did not run Composer" && echo "TRUE" || echo "FALSE"
-  check_mode: false
-  changed_when: '"TRUE" in phpmyadmin_composer_run.stdout'
-  register: phpmyadmin_composer_run
-  when: ( phpmyadmin_url is defined ) and ( phpmyadmin_url != "" )
-  tags:
-    - phpmyadmin
-
-- name: When phpmyadmin_version_file has changed
-  block:
+    - name: Chown the files
+      file:
+        path: "{{ phpmyadmin_docroot }}"
+        recurse: true
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_user }}"
 
     - name: composer update for phpMyAdmin
       command: composer update --no-dev
@@ -89,8 +43,6 @@
         chdir: "{{ phpmyadmin_docroot }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
-      tags:
-        - phpmyadmin
 
     - name: composer packages for two factor authentication present
       command: composer require pragmarx/google2fa-qrcode
@@ -98,9 +50,6 @@
         chdir: "{{ phpmyadmin_docroot }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
-      when: '"RELEASE_5" in phpmyadmin_version'
-      tags:
-        - phpmyadmin
 
     - name: yarn install for phpMyAdmin
       command: yarn install
@@ -110,61 +59,78 @@
         chdir: "{{ phpmyadmin_docroot }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
-      tags:
-        - phpmyadmin
 
-  when: ( phpmyadmin_version_file is changed ) or ( phpmyadmin_composer_run is defined and phpmyadmin_composer_run.stdout == "TRUE" )
+    - name: Check if the database contains tables
+      command: "mysql --user={{ phpmyadmin_dbuser | quote}} --password={{ phpmyadmin_dbpass | quote }} {{ phpmyadmin_dbname }} --skip-column-names --batch -e 'SHOW TABLES'"
+      register: phpmyadmin_dbtable_check
 
-- name: .htaccess in place
-  copy:
-    src: files/htaccess.root
-    dest: "{{ phpmyadmin_docroot }}/.htaccess"
-  tags:
-    - phpmyadmin
+    - name: Database tables present
+      mysql_db:
+        name: "{{ phpmyadmin_dbname }}"
+        state: import
+        target: "{{ phpmyadmin_docroot }}/sql/create_tables.sql"
+      when: ( phpmyadmin_dbtable_check is defined ) and ( phpmyadmin_dbtable_check.stdout | length <= 0 )
 
-# https://docs.phpmyadmin.net/en/latest/config.html#web-dirs
-- name: Get a list of sub-directories
-  shell: find . -maxdepth 1 -type d | grep -v ^\.$ | sed 's/\.\///' | grep -v ^js$ | grep -v ^themes$ | grep -v ^vendor$
-  args:
-    chdir: "{{ phpmyadmin_docroot }}"
-  become: true
-  become_user: "{{ phpmyadmin_user }}"
-  check_mode: false
-  changed_when: false
-  register: phpmyadmin_subdirs
-  tags:
-    - phpmyadmin
+    # https://docs.phpmyadmin.net/en/latest/config.html#web-dirs
+    - name: Get a list of sub-directories
+      shell: find . -maxdepth 1 -type d | grep -v ^\.$ | sed 's/\.\///' | grep -v ^js$ | grep -v ^themes$ | grep -v ^vendor$
+      args:
+        chdir: "{{ phpmyadmin_docroot }}"
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
+      check_mode: false
+      changed_when: false
+      register: phpmyadmin_subdirs
 
-- name: .htaccess files in place to deny direct access to sub-directories
-  copy:
-    src: files/htaccess.deny
-    dest: "{{ phpmyadmin_docroot }}/{{ dir }}/.htaccess"
-  loop: "{{ phpmyadmin_subdirs.stdout_lines }}"
-  loop_control:
-    loop_var: dir
-  tags:
-    - phpmyadmin
+    - name: .htaccess in place
+      copy:
+        src: files/htaccess.root
+        dest: "{{ phpmyadmin_docroot }}/.htaccess"
 
-- name: Generate blowfish secret for cookies
-  shell: "pwgen -sn 32 1 > {{ phpmyadmin_private }}/.blowfish.secret && chmod 400 {{ phpmyadmin_private }}/.blowfish.secret"
-  args:
-    creates: "{{ phpmyadmin_private }}/.blowfish.secret"
-  become: true
-  become_user: "{{ phpmyadmin_user }}"
-  check_mode: false
-  tags:
-    - phpmyadmin
+    - name: .htaccess files in place to deny direct access to sub-directories
+      copy:
+        src: files/htaccess.deny
+        dest: "{{ phpmyadmin_docroot }}/{{ dir }}/.htaccess"
+      loop: "{{ phpmyadmin_subdirs.stdout_lines }}"
+      loop_control:
+        loop_var: dir
 
-- name: Set a variable for the base64 encoded .blowfish.secret value
-  slurp:
-    src: "{{ phpmyadmin_private }}/.blowfish.secret"
-  register: phpmyadmin_blowfish_b64encoded
-  tags:
-    - phpmyadmin
+    - name: robots.txt in place
+      copy:
+        src: robots.txt
+        dest: "{{ phpmyadmin_html }}/robots.txt"
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_user }}"
+        mode: "0644"
 
-- name: Set a fact for the blowfish secret
-  set_fact:
-    phpmyadmin_blowfish_secret: "{{ phpmyadmin_blowfish_b64encoded['content'] | b64decode | trim }}"
+    - name: Generate blowfish secret for cookies
+      shell: "pwgen -sn 32 1 > {{ phpmyadmin_private }}/.blowfish.secret && chmod 400 {{ phpmyadmin_private }}/.blowfish.secret"
+      args:
+        creates: "{{ phpmyadmin_private }}/.blowfish.secret"
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
+      check_mode: false
+
+    - name: Set a variable for the base64 encoded .blowfish.secret value
+      slurp:
+        src: "{{ phpmyadmin_private }}/.blowfish.secret"
+      register: phpmyadmin_blowfish_b64encoded
+
+    - name: Set a fact for the blowfish secret
+      set_fact:
+        phpmyadmin_blowfish_secret: "{{ phpmyadmin_blowfish_b64encoded['content'] | b64decode | trim }}"
+
+    - name: Check for config.inc.php
+      stat:
+        path: "{{ phpmyadmin_html }}/config.inc.php"
+      check_mode: false
+      register: phpmyadmin_config_check
+
+    - name: Generate the config.inc.php file
+      template:
+        src: templates/config.inc.php.j2
+        dest: "{{ phpmyadmin_html }}/config.inc.php"
+
   tags:
     - phpmyadmin
 ...
