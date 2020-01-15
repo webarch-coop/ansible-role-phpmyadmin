@@ -4,8 +4,12 @@
 # this will be automatically changed into a git tag
 phpmyadmin_version: 5.0.1
 phpmyadmin_user: www-data
+# This role doesn't create the database or set the password
+# see https://git.coop/webarch/mariadb for that, the 
+# phpmyadmin_dbpass variable is required
 phpmyadmin_dbname: phpmyadmin
 phpmyadmin_dbuser: phpmyadmin
+# phpmyadmin_dbpass: 
 phpmyadmin_dbhost: localhost
 phpmyadmin_dbport: 3306
 phpmyadmin_dbsocket: /var/run/mysqld/mysqld.sock
