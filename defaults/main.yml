@@ -17,7 +17,4 @@ phpmyadmin_lang: "en"
 phpmyadmin_deny_root: true
 phpmyadmin_deny_users:
   - "{{ phpmyadmin_user }}"
-# Set these variables for https://git.coop/webarch/website-templates
-# phpmyadmin_domain:
-# phpmyadmin_path:
 ...
