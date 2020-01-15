@@ -23,11 +23,14 @@
 
     - name: Convert the phpMyAdmin version string to a git tag
       set_fact:
-        phpmyadmin_git_tag: "{{ phpmyadmin_version | regex_replace('^', 'RELEASE_') | regex_replace('[.]', '_')"
+        phpmyadmin_git_tag: "{{ phpmyadmin_version | regex_replace('^', 'RELEASE_')"
 
     - name: Debug git tag
       debug:
-        msg: "Proposed git tag: {{ phpmyadmin_git_tag }}"
+        msg: "Proposed git tag: {{ phpmyadmin_git_tag }}"o
+
+    - fail:
+        msg: Debug
 
     # https://docs.phpmyadmin.net/en/latest/setup.html#installing-from-git
     - name: phpMyAdmin repo present
