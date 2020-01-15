@@ -48,10 +48,10 @@ $cfg['Servers'][$i]['AllowDeny']['rules'] = array(
  */
 
 /* User used to manipulate with storage */
-$cfg['Servers'][$i]['controlhost'] = '{{ phpmyadmin_db_host }}';
-$cfg['Servers'][$i]['controlport'] = '{{ phpmyadmin_db_port }}';
-$cfg['Servers'][$i]['controluser'] = '{{ phpmyadmin_db_user }}';
-$cfg['Servers'][$i]['controlpass'] = '{{ phpmyadmin_db_pass }}';
+$cfg['Servers'][$i]['controlhost'] = '{{ phpmyadmin_dbhost }}';
+$cfg['Servers'][$i]['controlport'] = '{{ phpmyadmin_dbport }}';
+$cfg['Servers'][$i]['controluser'] = '{{ phpmyadmin_dbuser }}';
+$cfg['Servers'][$i]['controlpass'] = '{{ phpmyadmin_dbpass }}';
 
 /* Storage database and tables */
 $cfg['Servers'][$i]['pmadb'] = 'phpmyadmin';
