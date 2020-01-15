@@ -108,7 +108,7 @@
     - name: robots.txt in place
       copy:
         src: robots.txt
-        dest: "{{ phpmyadmin_html }}/robots.txt"
+        dest: "{{ phpmyadmin_docroot }}/robots.txt"
         owner: "{{ phpmyadmin_user }}"
         group: "{{ phpmyadmin_user }}"
         mode: "0644"
@@ -132,14 +132,14 @@
 
     - name: Check for config.inc.php
       stat:
-        path: "{{ phpmyadmin_html }}/config.inc.php"
+        path: "{{ phpmyadmin_docroot }}/config.inc.php"
       check_mode: false
       register: phpmyadmin_config_check
 
     - name: Generate the config.inc.php file
       template:
         src: templates/config.inc.php.j2
-        dest: "{{ phpmyadmin_html }}/config.inc.php"
+        dest: "{{ phpmyadmin_docroot }}/config.inc.php"
 
   tags:
     - phpmyadmin

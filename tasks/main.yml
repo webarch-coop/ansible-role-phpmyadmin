@@ -58,7 +58,7 @@
 
     - name: Check for package.json
       stat:
-        path: "{{ phpmyadmin_html }}/package.json"
+        path: "{{ phpmyadmin_docroot }}/package.json"
       register: phpmyadmin_package_json
 
     - name: Load variables from package.json if it exists

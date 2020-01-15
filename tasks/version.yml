@@ -4,7 +4,7 @@
 
     - name: Slurp package.json
       slurp:
-        src: "{{ phpmyadmin_html }}/package.json"
+        src: "{{ phpmyadmin_docroot }}/package.json"
       register: phpmyadmin_vars_b64encoded
 
     - name: Set facts from package.json variables
