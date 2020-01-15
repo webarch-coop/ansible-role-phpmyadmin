@@ -48,18 +48,18 @@
         owner: "{{ phpmyadmin_user }}"
         group: "{{ phpmyadmin_user }}"
 
-    - name: composer update for phpMyAdmin
+    - name: composer packages for two factor authentication present
       composer:
-        command: update
+        command: require 
+        arguments: pragmarx/google2fa-qrcode
         no_dev: true
         working_dir: "{{ phpmyadmin_docroot }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
 
-    - name: composer packages for two factor authentication present
+    - name: composer update for phpMyAdmin
       composer:
-        command: require 
-        arguments: pragmarx/google2fa-qrcode
+        command: update
         no_dev: true
         working_dir: "{{ phpmyadmin_docroot }}"
       become: true
