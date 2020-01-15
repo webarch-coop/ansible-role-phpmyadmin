@@ -21,7 +21,7 @@
   assert:
     that:
       - phpmyadmin_user is defined
-      - phpmyadmin_version is defined
+      - ( phpmyadmin_version is defined ) and ( phpmyadmin_version is regex('^[0-9][.][0-9][.][0-9]{1,2}[.]{0,1}[0-9]{0,2}$') )
       - phpmyadmin_dbname is defined
       - phpmyadmin_dbuser is defined
       - phpmyadmin_dbpass is defined
