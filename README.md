@@ -4,8 +4,8 @@ An Ansible role to install [phpMyAdmin](https://www.phpmyadmin.net/), using
 `git`, it has, so far, only been tested on Debian Buster, this role
 automatically upgrades from the Debian packaged version in Stretch.
 
-When [Version 5](https://github.com/phpmyadmin/phpmyadmin/releases) is used two
-factor authentication is available, however it is currently an alpha release.
+With [Version 5](https://github.com/phpmyadmin/phpmyadmin/releases) two
+factor authentication is available and this is installed automatically.
 
 This is role designed to be used with [Apache](https://git.coop/webarch/apache)
 and requires [Yarn](https://git.coop/webarch/yarn) and Composer.

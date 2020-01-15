@@ -76,6 +76,7 @@
 
     - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
       include_tasks: phpmyadmin.yml
+      when: ( not phpmyadmin_package_json.stat.exists ) or ( phpmyadmin_installed_version is defined and phpmyadmin_installed_version != phpmyadmin_version )
 
     - name: Check for config.inc.php
       stat:

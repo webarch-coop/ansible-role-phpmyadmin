@@ -1,4 +1,16 @@
 ---
+# - name: Convert the phpMyAdmin version string to a git tag
+#   set_fact:
+#     phpmyadmin_git_tag: "{{ phpmyadmin_version | regex_replace('^', 'RELEASE_') | regex_replace('[.]', '_')"
+#   tags:
+#     - phpmyadmin
+#
+# - name: Debug git tag
+#   debug:
+#     msg: "Proposed git tag: {{ phpmyadmin_git_tag }}"
+#   tags:
+#     - phpmyadmin
+
 - name: "Write phpmyadmin_version variable to {{ phpmyadmin_version_file }}"
   template:
     src: templates/VERSION.j2
