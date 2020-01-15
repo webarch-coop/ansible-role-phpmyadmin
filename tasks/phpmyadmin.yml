@@ -60,7 +60,7 @@
       composer:
         command: require
         arguments: pragmarx/google2fa-qrcode
-        no_dev: false
+        no_dev: true
         working_dir: "{{ phpmyadmin_docroot }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
