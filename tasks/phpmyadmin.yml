@@ -10,16 +10,26 @@
         group: "{{ phpmyadmin_user }}"
         mode: 0700
 
-    - name: GitHub GPG key present
+    - name: GPG keys present
       copy:
-        src: files/github.asc
-        dest: /root/github.asc
+        src: "files/{{ key }}"
+        dest: "/root/{{ key }}"
+      loop:
+        - github.asc
+        - ibennetch.asc
+      loop_control:
+        loop_var: key
 
-    - name: GitLab GPG public key imported
-      command: gpg --import /root/github.asc
+    - name: GitHub GPG public key imported
+      command: "gpg --import /root/{{ key }}"
       register: phpmyadmin_gpg_import
       changed_when: '"not changed" not in phpmyadmin_gpg_import.stderr'
       check_mode: false
+      loop:
+        - github.asc
+        - ibennetch.asc
+      loop_control:
+        loop_var: key
 
     - name: Convert the phpMyAdmin version string to a git tag
       set_fact:
