@@ -79,7 +79,7 @@
 
     - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
       include_tasks: phpmyadmin.yml
-      when: ( phpmyadmin_package_json is not defined ) or ( phpmyadmin_package_json.stat.exists == False )
+      when: ( phpmyadmin_package_json is not defined ) or ( not phpmyadmin_package_json.stat.exists == False )
 
   when: '"no such user" not in phpmyadmin_user_check.stderr'
   tags:
