@@ -79,7 +79,7 @@
       yarn:
         path: "{{ phpmyadmin_docroot }}"
         production: true
-        state: latest
+        state: present
       become: true
       become_user: "{{ phpmyadmin_user }}"
 

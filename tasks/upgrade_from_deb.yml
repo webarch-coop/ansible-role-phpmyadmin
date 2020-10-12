@@ -2,7 +2,8 @@
 - name: Get the version of the Debian package which is installed
   block:
 
-    - shell: "aptitude versions phpmyadmin | grep ^i | awk '{ print $2 }' | sed 's/.*://'"
+    - name: Get Debian phpMyAdmin versions using aptitude
+      shell: "aptitude versions phpmyadmin | grep ^i | awk '{ print $2 }' | sed 's/.*://'"
       register: phpmyadmin_debian_version_check
 
     - name: Set a fact for the phpmyadmin_debian_version
