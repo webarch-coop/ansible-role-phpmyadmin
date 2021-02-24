@@ -7,13 +7,16 @@
         path: "{{ phpmyadmin_home }}/.ansible"
         state: directory
         owner: "{{ phpmyadmin_user }}"
-        group: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
         mode: 0700
 
     - name: GPG keys present
       copy:
         src: "files/{{ key }}"
         dest: "/root/{{ key }}"
+        owner: root
+        group: root
+        mode: 0600
       loop:
         - github.asc
         - ibennetch.asc
@@ -56,7 +59,7 @@
         path: "{{ phpmyadmin_docroot }}"
         recurse: true
         owner: "{{ phpmyadmin_user }}"
-        group: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
 
     - name: Composer update for phpMyAdmin
       composer:
@@ -109,11 +112,17 @@
       copy:
         src: files/htaccess.root
         dest: "{{ phpmyadmin_docroot }}/.htaccess"
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
+        mode: 0644
 
     - name: .htaccess files in place to deny direct access to sub-directories
       copy:
         src: files/htaccess.deny
         dest: "{{ phpmyadmin_docroot }}/{{ dir }}/.htaccess"
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
+        mode: "0644"
       loop: "{{ phpmyadmin_subdirs.stdout_lines }}"
       loop_control:
         loop_var: dir
@@ -123,8 +132,8 @@
         src: robots.txt
         dest: "{{ phpmyadmin_docroot }}/robots.txt"
         owner: "{{ phpmyadmin_user }}"
-        group: "{{ phpmyadmin_user }}"
-        mode: "0644"
+        group: "{{ phpmyadmin_group }}"
+        mode: 0644
 
     - name: Generate blowfish secret for cookies
       shell: "pwgen -sn 32 1 > {{ phpmyadmin_private }}/.blowfish.secret && chmod 400 {{ phpmyadmin_private }}/.blowfish.secret"
@@ -153,6 +162,9 @@
       template:
         src: templates/config.inc.php.j2
         dest: "{{ phpmyadmin_docroot }}/config.inc.php"
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
+        mode: 0640
 
   tags:
     - phpmyadmin
