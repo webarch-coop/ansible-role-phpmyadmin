@@ -1,53 +1,50 @@
 ---
-- name: Required packages present
-  apt:
-    pkg:
-      - aptitude
-      - git
-      - gnupg
-      - pwgen
-    state: present
-  tags:
-    - phpmyadmin
-
-# TODO Omit this when everything has been updated
-- name: Include backwards compatibility tasks
-  include_tasks: compat.yml
-  tags:
-    - phpmyadmin
-
-# TODO Additional checks on variables could be added
-- name: Check that required variables are defined
-  assert:
-    that:
-      - phpmyadmin_user is defined
-      - ( phpmyadmin_version is defined ) and ( phpmyadmin_version is regex('^[0-9][.][0-9][.][0-9]{1,2}[.]{0,1}[0-9]{0,2}$') )
-      - phpmyadmin_dbname is defined
-      - phpmyadmin_dbuser is defined
-      - phpmyadmin_dbpass is defined
-      - phpmyadmin_dbhost is defined
-      - phpmyadmin_dbport is defined
-      - phpmyadmin_dbsocket is defined
-      - phpmyadmin_url is defined
-      - phpmyadmin_home is defined
-      - phpmyadmin_tmp is defined
-      - phpmyadmin_private is defined
-      - phpmyadmin_docroot is defined
-      - phpmyadmin_lang is defined
-  tags:
-    - phpmyadmin
-
-- name: "Check if the phpMyAdmin {{ phpmyadmin_user }} user account exists"
-  shell: "id {{ phpmyadmin_user }} && echo true || echo false"
-  check_mode: false
-  register: phpmyadmin_user_check
-  changed_when: '"no such user" in phpmyadmin_user_check.stderr'
-  tags:
-    - phpmyadmin
-
-- name: Only install or upgrade phpMyAdmin if the user account exists
+- name: Install and upgrade phpMyAdmin
   block:
 
+    - name: Required packages present
+      apt:
+        pkg:
+          - aptitude
+          - git
+          - gnupg
+          - pwgen
+        state: present
+
+    # TODO Omit this when everything has been updated
+    - name: Include backwards compatibility tasks
+      include_tasks: compat.yml
+
+    # TODO Additional checks on variables could be added
+    - name: Check that required variables are defined
+      assert:
+        that:
+          - phpmyadmin_user is defined
+          - ( phpmyadmin_version is defined ) and ( phpmyadmin_version is regex('^[0-9][.][0-9][.][0-9]{1,2}[.]{0,1}[0-9]{0,2}$') )
+          - phpmyadmin_dbname is defined
+          - phpmyadmin_dbuser is defined
+          - phpmyadmin_dbpass is defined
+          - phpmyadmin_dbhost is defined
+          - phpmyadmin_dbport is defined
+          - phpmyadmin_dbsocket is defined
+          - phpmyadmin_url is defined
+          - phpmyadmin_home is defined
+          - phpmyadmin_tmp is defined
+          - phpmyadmin_private is defined
+          - phpmyadmin_docroot is defined
+          - phpmyadmin_lang is defined
+
+    - name: "Populate the getent_passwd array for {{ inventory_hostname }}"
+      getent:
+        database: passwd
+        split: ':'
+
+    - name: "Fail if the {{ phpmyadmin_user }} user account doesn't exist"
+      fail:
+        msg: "The {{ phpmyadmin_user }} user account doesn't exist on {{ inventory_hostname }}"
+      when: phpmyadmin_user not in getent_passwd
+
+    # TODO This is to upgrade from phpMyAdmin in Stretch, Buster didn't ship it but Bullseye does
     - name: Check if a Debian package is installed
       shell: "aptitude versions phpmyadmin | grep -q ^i && echo INSTALLED || echo NOTFOUND"
       check_mode: false
@@ -74,14 +71,11 @@
           when: ( phpmyadmin_installed_version is defined ) and ( phpmyadmin_installed_version != phpmyadmin_version )
 
       when: ( phpmyadmin_package_json is defined ) and ( phpmyadmin_package_json.stat.exists )
-      tags:
-        - phpmyadmin
 
     - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
       include_tasks: phpmyadmin.yml
       when: ( phpmyadmin_package_json is not defined ) or ( not phpmyadmin_package_json.stat.exists )
 
-  when: '"no such user" not in phpmyadmin_user_check.stderr'
   tags:
     - phpmyadmin
 ...
