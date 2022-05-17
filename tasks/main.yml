@@ -68,7 +68,7 @@
 
         - name: Set a fact for the latest version of phpMyAdmin
           ansible.builtin.set_fact:
-            phpmyadmin_proposed: "{{ phpmyadmin_latest_headers.location | urlsplit('path') | basename | regex_replace('^RELEASE_') | regex_replace('[_]', '[.]') | string }}"
+            phpmyadmin_proposed: "{{ phpmyadmin_latest_headers.location | urlsplit('path') | basename | regex_replace('^RELEASE_') | regex_replace('_', '.') | string }}"
 
       when: phpmyadmin_version == "latest"
 
@@ -92,8 +92,8 @@
     - name: Check that if we are instaling or upgrading to phpMyAdmin 5.2.0 we have php 7.2 or newer
       assert:
         that:
-          - php_version is version('7.2', '>=')
-      when: phpmyadmin_proposed is version('5.2.0', '>=')
+          - php_version | string is version('7.2', '>=')
+      when: phpmyadmin_proposed | string is version('5.2.0', '>=')
 
     - name: Upgrade from phpMyAdmin deb on Stretch, Buster didn't ship it but Bullseye does again
       include_tasks: upgrade_from_deb.yml
