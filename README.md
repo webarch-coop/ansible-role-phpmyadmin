@@ -4,7 +4,7 @@
 
 An Ansible role to install [phpMyAdmin](https://www.phpmyadmin.net/), using `git` on Debian Buster and Debian Bullseye.
 
-This role automatically upgrades from the Debian packaged version of phpMyAdmin in Stretch, it hasn't been tested with the Debian packages version of phpMyAdmin in Debian Bullseye or Buster backports.
+This role automatically upgrades from [the Debian packaged version of phpMyAdmin in Stretch](https://packages.debian.org/search?suite=stretch&searchon=names&keywords=phpmyadmin), it hasn't been tested with the Debian packages version of phpMyAdmin in [Debian Bullseye](https://packages.debian.org/search?suite=bullseye&searchon=names&keywords=phpmyadmin) or [Buster backports](https://packages.debian.org/search?suite=buster-backports&searchon=names&keywords=phpmyadmin).
 
 With [phpMyAdmin version 4.8.x and upwards](https://github.com/phpmyadmin/phpmyadmin/releases) two factor authentication is available and this is installed automatically.
 
