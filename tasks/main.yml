@@ -133,6 +133,13 @@
       include_tasks: phpmyadmin.yml
       when: ( phpmyadmin_package_json is not defined ) or ( not phpmyadmin_package_json.stat.exists )
 
+    - name: Load installed phpMyAdmin version variable from package.json
+      include_tasks: version.yml
+
+    - name: Print the phpMyAdmin version that is installed
+      debug:
+        var: phpmyadmin_installed
+
   tags:
     - phpmyadmin
 ...
