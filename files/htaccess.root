@@ -1,3 +1,5 @@
+# Ansible managed
+
 # 404 if it starts with a dot
 RedirectMatch 404 /\.
 
