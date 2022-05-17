@@ -94,11 +94,7 @@
 
     - name: Database tables present
       mysql_db:
-        login_host: "{{ phpmyadmin_dbhost }}"
-        login_password: "{{ phpmyadmin_dbpass }}"
-        login_port: "{{ phpmyadmin_dbport }}"
-        login_user: "{{ phpmyadmin_dbuser }}"
-        # login_unix_socket: "{{ phpmyadmin_dbsocket }}"
+        login_unix_socket: "{{ phpmyadmin_dbsocket }}"
         name: "{{ phpmyadmin_dbname }}"
         state: import
         target: "{{ phpmyadmin_docroot }}/sql/create_tables.sql"
