@@ -99,9 +99,12 @@
 
     # https://docs.phpmyadmin.net/en/latest/config.html#web-dirs
     - name: Get a list of sub-directories
-      shell: find . -maxdepth 1 -type d | grep -v ^\.$ | sed 's/\.\///' | grep -v ^js$ | grep -v ^themes$ | grep -v ^vendor$
+      shell: |
+        set -e -o pipefail
+        find . -maxdepth 1 -type d | grep -v ^\.$ | sed 's/\.\///' | grep -v ^js$ | grep -v ^themes$ | grep -v ^vendor$
       args:
         chdir: "{{ phpmyadmin_docroot }}"
+        executable: "{{ phpmyadmin_bash }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
       check_mode: false
@@ -136,9 +139,12 @@
         mode: 0644
 
     - name: Generate blowfish secret for cookies
-      shell: "pwgen -sn 32 1 > {{ phpmyadmin_private }}/.blowfish.secret && chmod 400 {{ phpmyadmin_private }}/.blowfish.secret"
+      shell: |
+        set -e -o pipefail
+        pwgen -sn 32 1 > {{ phpmyadmin_private }}/.blowfish.secret && chmod 400 {{ phpmyadmin_private }}/.blowfish.secret
       args:
         creates: "{{ phpmyadmin_private }}/.blowfish.secret"
+        executable: "{{ phpmyadmin_bash }}"
       become: true
       become_user: "{{ phpmyadmin_user }}"
       check_mode: false

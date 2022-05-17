@@ -1,14 +1,16 @@
 ---
 galaxy_info:
   role_name: phpmyadmin
+  namespace: chriscroome
   author: Chris Croome
-  description: Ansible role for installing phpMyAdmin
+  description: Ansible role for installing and upgrading phpMyAdmin on Debian
   company: Webarchitects Co-operative
-  license: license (GPLv3)
-  min_ansible_version: 2.4
+  license: GNU General Public License v3.0 (GPLv3)
+  min_ansible_version: 2.9
   platforms:
     - name: debian
       versions:
+        - bullseye
         - buster
   galaxy_tags: []
 ...

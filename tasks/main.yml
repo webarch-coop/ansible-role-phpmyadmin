@@ -6,10 +6,22 @@
       apt:
         pkg:
           - aptitude
+          - bash
           - git
           - gnupg
           - pwgen
         state: present
+
+    - name: Run which bash
+      command: which bash
+      check_mode: false
+      changed_when: false
+      register: phpmyadmin_which_bash
+      failed_when: phpmyadmin_which_bash.stdout is not regex('\/bash$')
+
+    - name: Set a variable for the path to Bash
+      set_fact:
+        phpmyadmin_bash: "{{ phpmyadmin_which_bash.stdout }}"
 
     # TODO Omit this when everything has been updated
     - name: Include backwards compatibility tasks
@@ -34,26 +46,15 @@
           - phpmyadmin_docroot is defined
           - phpmyadmin_lang is defined
 
-    - name: "Populate the getent_passwd array for {{ inventory_hostname }}"
+    - name: Fail if the phpMyAdmin user account doesn't exist
       getent:
         database: passwd
-        split: ':'
+        key: "{{ phpmyadmin_user }}"
+        fail_key: true
 
-    - name: "Fail if the {{ phpmyadmin_user }} user account doesn't exist"
-      fail:
-        msg: "The {{ phpmyadmin_user }} user account doesn't exist on {{ inventory_hostname }}"
-      when: phpmyadmin_user not in getent_passwd
-
-    # TODO This is to upgrade from phpMyAdmin in Stretch, Buster didn't ship it but Bullseye does
-    - name: Check if a Debian package is installed
-      shell: "aptitude versions phpmyadmin | grep -q ^i && echo INSTALLED || echo NOTFOUND"
-      check_mode: false
-      register: phpmyadmin_debian_installed
-      changed_when: '"INSTALLED" in phpmyadmin_debian_installed.stdout'
-
-    - name: Upgrade from a Debian package version
+    - name: Upgrade from phpMyAdmin deb on Stretch, Buster didn't ship it but Bullseye does again
       include_tasks: upgrade_from_deb.yml
-      when: ( phpmyadmin_debian_installed is defined ) and ( phpmyadmin_debian_installed.stdout == "INSTALLED" )
+      when: ansible_distribution_release == "buster"
 
     - name: Check for package.json
       stat:
