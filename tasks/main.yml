@@ -107,20 +107,18 @@
     - name: When phpMyAdmin is already installed upgrade if needed
       block:
 
-        - name: Load variables from package.json if it exists
+        - name: Load installed phpMyAdmin version variable from package.json
           include_tasks: version.yml
 
         - name: Debug phpMyAdmin version installed
           debug:
             var: phpmyadmin_installed
-            verbosity: 2
 
         - name: Debug phpMyAdmin version proposed
           debug:
             var: phpmyadmin_proposed
-            verbosity: 2
 
-        - name: Don't allowd downgrades of phpMyAdmin
+        - name: Don't allow downgrades of phpMyAdmin
           assert:
             that:
               - phpmyadmin_proposed is version(phpmyadmin_installed, '>=')
