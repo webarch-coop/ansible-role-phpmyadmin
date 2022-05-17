@@ -1,6 +1,6 @@
 # Webarchitects phpMyAdmin Ansible role
 
-[![pipeline status](https://git.coop/webarch/phpmyadmin/badges/main/pipeline.svg)](https://git.coop/webarch/phpmyadmin/-/commits/main)
+[![pipeline status](https://git.coop/webarch/phpmyadmin/badges/master/pipeline.svg)](https://git.coop/webarch/phpmyadmin/-/commits/master)
 
 An Ansible role to install [phpMyAdmin](https://www.phpmyadmin.net/), using `git` on Debian Buster and Debian Bullseye.
 
