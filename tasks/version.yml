@@ -17,9 +17,9 @@
           - "{{ phpmyadmin_vars }}"
         verbosity: 2
 
-    - name: Set phpmyadmin_installed_version variable from package.json variables
+    - name: Set phpmyadmin_installed variable from package.json variables
       set_fact:
-        phpmyadmin_installed_version: "{{ phpmyadmin_vars.version }}"
+        phpmyadmin_installed: "{{ phpmyadmin_vars.version | string }}"
 
   tags:
     - phpmyadmin

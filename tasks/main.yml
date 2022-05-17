@@ -87,7 +87,7 @@
 
     - name: Set a fact for the version of PHP available via the command line
       set_fact:
-        php_version: "{{ ( phpmyadmin_php_version_check.stdout_lines[0] ).split(' ')[1] }}"
+        php_version: "{{ ( phpmyadmin_php_version_check.stdout_lines[0] ).split(' ')[1] | string }}"
 
     - name: Check that if we are instaling or upgrading to phpMyAdmin 5.2.0 we have php 7.2 or newer
       assert:
@@ -112,7 +112,7 @@
 
         - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
           include_tasks: phpmyadmin.yml
-          when: ( phpmyadmin_installed_version is defined ) and ( phpmyadmin_installed_version != phpmyadmin_version )
+          when: ( phpmyadmin_installed is defined ) and ( phpmyadmin_installed is version(phpmyadmin_proposed, '<')
 
       when: ( phpmyadmin_package_json is defined ) and ( phpmyadmin_package_json.stat.exists )
 
