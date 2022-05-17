@@ -52,6 +52,20 @@
         key: "{{ phpmyadmin_user }}"
         fail_key: true
 
+    - name: Check the default version of PHP available via the command line
+      command: php --version
+      register: phpmyadmin_php_version_check
+
+    - name: Set a fact for the version of PHP available via the command line
+      set_fact:
+        php_version: "{{ ( phpmyadmin_php_version_check.stdout_lines[0] ).split(' ')[1] }}"
+
+    - name: Check that if we are instaling or upgrading to phpMyAdmin 5.2.0 we have php 7.2 or newer
+      assert:
+        that:
+          - php_version is version('7.2', '>=')
+      when: phpmyadmin_version is version('5.2.0', '>=')
+
     - name: Upgrade from phpMyAdmin deb on Stretch, Buster didn't ship it but Bullseye does again
       include_tasks: upgrade_from_deb.yml
       when: ansible_distribution_release == "buster"
