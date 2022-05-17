@@ -2,7 +2,8 @@
 # Use a version number from this page
 # https://github.com/phpmyadmin/phpmyadmin/releases
 # this will be automatically changed into a git tag
-phpmyadmin_version: 5.2.0
+# or "latest"
+phpmyadmin_version: latest
 phpmyadmin_user: www-data
 phpmyadmin_group: "{{ phpmyadmin_user }}"
 # This role doesn't create the database or set the password

@@ -36,7 +36,7 @@
 
     - name: Convert the phpMyAdmin version string to a git tag
       set_fact:
-        phpmyadmin_git_tag: "{{ phpmyadmin_version | regex_replace('^', 'RELEASE_') | regex_replace('[.]', '_') }}"
+        phpmyadmin_git_tag: "{{ phpmyadmin_proposed | regex_replace('^', 'RELEASE_') | regex_replace('[.]', '_') }}"
 
     - name: Debug git tag
       debug:

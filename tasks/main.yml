@@ -32,7 +32,8 @@
       assert:
         that:
           - phpmyadmin_user is defined
-          - ( phpmyadmin_version is defined ) and ( phpmyadmin_version is regex('^[0-9][.][0-9][.][0-9]{1,2}[.]{0,1}[0-9]{0,2}$') )
+          - phpmyadmin_version is defined
+          - ( phpmyadmin_version == "latest" ) or ( phpmyadmin_version is regex('^[0-9][.][0-9][.][0-9]{1,2}[.]{0,1}[0-9]{0,2}$') )
           - phpmyadmin_dbname is defined
           - phpmyadmin_dbuser is defined
           - phpmyadmin_dbpass is defined
@@ -52,8 +53,36 @@
         key: "{{ phpmyadmin_user }}"
         fail_key: true
 
+    - name: Find the latest version of phpMyAdmin
+      block:
+
+        - name: Use a HEAD request to get the latest redirect URL
+          ansible.builtin.uri:
+            url: https://github.com/phpmyadmin/phpmyadmin/releases/latest
+            method: HEAD
+            status_code: 302
+            follow_redirects: none
+          check_mode: false
+          changed_when: false
+          register: phpmyadmin_latest_headers
+
+        - name: Set a fact for the latest version of phpMyAdmin
+          ansible.builtin.set_fact:
+            phpmyadmin_proposed: "{{ phpmyadmin_latest_headers.location | urlsplit('path') | basename | regex_replace('^RELEASE_') | regex_replace('[_]', '[.]') | string }}"
+
+      when: phpmyadmin_version == "latest"
+
+    - name: Set a fact for the proposed version of phpMyAdmin when not usig the latest version
+      ansible.builtin.set_fact:
+        phpmyadmin_proposed: "{{ phpmyadmin_version | string }}"
+      when: phpmyadmin_proposed is not defined
+
     - name: Check the default version of PHP available via the command line
       command: php --version
+      check_mode: false
+      changed_when: false
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
       register: phpmyadmin_php_version_check
 
     - name: Set a fact for the version of PHP available via the command line
@@ -64,7 +93,7 @@
       assert:
         that:
           - php_version is version('7.2', '>=')
-      when: phpmyadmin_version is version('5.2.0', '>=')
+      when: phpmyadmin_proposed is version('5.2.0', '>=')
 
     - name: Upgrade from phpMyAdmin deb on Stretch, Buster didn't ship it but Bullseye does again
       include_tasks: upgrade_from_deb.yml
