@@ -1,14 +1,10 @@
 ---
-# Use a version number from this page
-# https://github.com/phpmyadmin/phpmyadmin/releases
-# this will be automatically changed into a git tag
-# or "latest"
 phpmyadmin_version: latest
+# This role doesn't create the user or group
 phpmyadmin_user: www-data
 phpmyadmin_group: "{{ phpmyadmin_user }}"
 # This role doesn't create the database or set the password
-# see https://git.coop/webarch/mariadb for that, the
-# phpmyadmin_dbpass variable is required
+# the phpmyadmin_dbpass variable is required
 phpmyadmin_dbname: phpmyadmin
 phpmyadmin_dbuser: phpmyadmin
 # phpmyadmin_dbpass:
