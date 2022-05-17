@@ -11,11 +11,11 @@ phpmyadmin_dbuser: phpmyadmin
 phpmyadmin_dbhost: localhost
 phpmyadmin_dbport: 3306
 phpmyadmin_dbsocket: /var/run/mysqld/mysqld.sock
-phpmyadmin_home: "/var/www"
+phpmyadmin_home: /var/www
 phpmyadmin_private: "{{ phpmyadmin_home }}"
 phpmyadmin_docroot: "{{ phpmyadmin_home }}/phpmyadmin"
-phpmyadmin_tmp: "/tmp"
-phpmyadmin_lang: "en"
+phpmyadmin_tmp: /tmp
+phpmyadmin_lang: en
 phpmyadmin_deny_root: true
 phpmyadmin_deny_users:
   - "{{ phpmyadmin_user }}"
