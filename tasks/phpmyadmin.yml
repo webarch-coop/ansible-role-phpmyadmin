@@ -87,7 +87,10 @@
       become_user: "{{ phpmyadmin_user }}"
 
     - name: Check if the database contains tables
-      command: "mysql --user={{ phpmyadmin_dbuser | quote}} --password={{ phpmyadmin_dbpass | quote }} {{ phpmyadmin_dbname }} --skip-column-names --batch -e 'SHOW TABLES'"
+      command: "mysql --user={{ phpmyadmin_dbuser | quote}} --password={{ phpmyadmin_dbpass | quote }} {{ phpmyadmin_dbname | quote }} --skip-column-names --batch -e 'SHOW TABLES'"
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
+
       register: phpmyadmin_dbtable_check
 
     - name: Database tables present
