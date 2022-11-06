@@ -3,7 +3,7 @@
   block:
 
     - name: .ansible directory present
-      file:
+      ansible.builtin.file:
         path: "{{ phpmyadmin_home }}/.ansible"
         state: directory
         owner: "{{ phpmyadmin_user }}"
@@ -11,7 +11,7 @@
         mode: 0700
 
     - name: GPG keys present
-      copy:
+      ansible.builtin.copy:
         src: "files/{{ key }}"
         dest: "/root/{{ key }}"
         owner: root
@@ -24,7 +24,7 @@
         loop_var: key
 
     - name: GitHub GPG public key imported
-      command: "gpg --import /root/{{ key }}"
+      ansible.builtin.command: "gpg --import /root/{{ key }}"
       register: phpmyadmin_gpg_import
       changed_when: '"not changed" not in phpmyadmin_gpg_import.stderr'
       check_mode: false
@@ -35,16 +35,16 @@
         loop_var: key
 
     - name: Convert the phpMyAdmin version string to a git tag
-      set_fact:
+      ansible.builtin.set_fact:
         phpmyadmin_git_tag: "{{ phpmyadmin_proposed | regex_replace('^', 'RELEASE_') | regex_replace('[.]', '_') }}"
 
     - name: Debug git tag
-      debug:
+      ansible.builtin.debug:
         msg: "Proposed git tag: {{ phpmyadmin_git_tag }}"
 
     # https://docs.phpmyadmin.net/en/latest/setup.html#installing-from-git
     - name: phpMyAdmin repo present
-      git:
+      ansible.builtin.git:
         repo: https://github.com/phpmyadmin/phpmyadmin.git
         dest: "{{ phpmyadmin_docroot }}"
         version: "{{ phpmyadmin_git_tag }}"
@@ -55,14 +55,14 @@
         verify_commit: true
 
     - name: Chown the files
-      file:
+      ansible.builtin.file:
         path: "{{ phpmyadmin_docroot }}"
         recurse: true
         owner: "{{ phpmyadmin_user }}"
         group: "{{ phpmyadmin_group }}"
 
     - name: Composer update for phpMyAdmin
-      composer:
+      community.general.composer:
         command: update
         no_dev: true
         working_dir: "{{ phpmyadmin_docroot }}"
@@ -70,7 +70,7 @@
       become_user: "{{ phpmyadmin_user }}"
 
     - name: Composer packages for two factor authentication present
-      composer:
+      community.general.composer:
         command: require
         arguments: pragmarx/google2fa-qrcode
         no_dev: true
@@ -79,7 +79,7 @@
       become_user: "{{ phpmyadmin_user }}"
 
     - name: yarn install for phpMyAdmin
-      yarn:
+      community.general.yarn:
         path: "{{ phpmyadmin_docroot }}"
         production: true
         state: present
@@ -87,13 +87,15 @@
       become_user: "{{ phpmyadmin_user }}"
 
     - name: Check if the database contains tables
-      command: "mysql --user={{ phpmyadmin_dbuser | quote}} --password={{ phpmyadmin_dbpass | quote }} {{ phpmyadmin_dbname | quote }} --skip-column-names --batch -e 'SHOW TABLES'"
+      ansible.builtin.command: "mysql --user={{ phpmyadmin_dbuser | quote}} --password={{ phpmyadmin_dbpass | quote }} {{ phpmyadmin_dbname | quote }} --skip-column-names --batch -e 'SHOW TABLES'"
+      check_mode: false
+      changed_when: false
       register: phpmyadmin_dbtable_check
       become: true
       become_user: "{{ phpmyadmin_user }}"
 
     - name: Database tables present
-      mysql_db:
+      community.mysql.mysql_db:
         login_unix_socket: "{{ phpmyadmin_dbsocket }}"
         name: "{{ phpmyadmin_dbname }}"
         state: import
@@ -102,7 +104,7 @@
 
     # https://docs.phpmyadmin.net/en/latest/config.html#web-dirs
     - name: Get a list of sub-directories
-      shell: |
+      ansible.builtin.shell: |
         set -e -o pipefail
         find . -maxdepth 1 -type d | grep -v ^\.$ | sed 's/\.\///' | grep -v ^js$ | grep -v ^themes$ | grep -v ^vendor$
       args:
@@ -115,7 +117,7 @@
       register: phpmyadmin_subdirs
 
     - name: .htaccess in place
-      copy:
+      ansible.builtin.copy:
         src: files/htaccess.root
         dest: "{{ phpmyadmin_docroot }}/.htaccess"
         owner: "{{ phpmyadmin_user }}"
@@ -123,7 +125,7 @@
         mode: 0644
 
     - name: .htaccess files in place to deny direct access to sub-directories
-      copy:
+      ansible.builtin.copy:
         src: files/htaccess.deny
         dest: "{{ phpmyadmin_docroot }}/{{ dir }}/.htaccess"
         owner: "{{ phpmyadmin_user }}"
@@ -134,7 +136,7 @@
         loop_var: dir
 
     - name: robots.txt in place
-      copy:
+      ansible.builtin.copy:
         src: robots.txt
         dest: "{{ phpmyadmin_docroot }}/robots.txt"
         owner: "{{ phpmyadmin_user }}"
@@ -142,7 +144,7 @@
         mode: 0644
 
     - name: Generate blowfish secret for cookies
-      shell: |
+      ansible.builtin.shell: |
         set -e -o pipefail
         pwgen -sn 32 1 > {{ phpmyadmin_private }}/.blowfish.secret && chmod 400 {{ phpmyadmin_private }}/.blowfish.secret
       args:
@@ -153,22 +155,22 @@
       check_mode: false
 
     - name: Set a variable for the base64 encoded .blowfish.secret value
-      slurp:
+      ansible.builtin.slurp:
         src: "{{ phpmyadmin_private }}/.blowfish.secret"
       register: phpmyadmin_blowfish_b64encoded
 
     - name: Set a fact for the blowfish secret
-      set_fact:
+      ansible.builtin.set_fact:
         phpmyadmin_blowfish_secret: "{{ phpmyadmin_blowfish_b64encoded['content'] | b64decode | trim }}"
 
     - name: Check for config.inc.php
-      stat:
+      ansible.builtin.stat:
         path: "{{ phpmyadmin_docroot }}/config.inc.php"
       check_mode: false
       register: phpmyadmin_config_check
 
     - name: Generate the config.inc.php file
-      template:
+      ansible.builtin.template:
         src: templates/config.inc.php.j2
         dest: "{{ phpmyadmin_docroot }}/config.inc.php"
         owner: "{{ phpmyadmin_user }}"

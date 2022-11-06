@@ -3,22 +3,22 @@
   block:
 
     - name: Slurp package.json
-      slurp:
+      ansible.builtin.slurp:
         src: "{{ phpmyadmin_docroot }}/package.json"
       register: phpmyadmin_vars_b64encoded
 
     - name: Set facts from package.json variables
-      set_fact:
+      ansible.builtin.set_fact:
         phpmyadmin_vars: "{{ phpmyadmin_vars_b64encoded['content'] | b64decode | from_json }}"
 
     - name: Debug package.json variables
-      debug:
+      ansible.builtin.debug:
         msg:
           - "{{ phpmyadmin_vars }}"
         verbosity: 2
 
     - name: Set phpmyadmin_installed variable from package.json variables
-      set_fact:
+      ansible.builtin.set_fact:
         phpmyadmin_installed: "{{ phpmyadmin_vars.version | string }}"
 
   tags:

@@ -2,7 +2,7 @@
 # TODO Update tasks so they don't use the shell module
 
 - name: Check if a Debian package is installed
-  shell: |
+  ansible.builtin.shell: |
     set -e -o pipefail
     aptitude versions phpmyadmin | grep -q ^i && echo INSTALLED || echo NOTFOUND
   args:
@@ -17,7 +17,7 @@
   block:
 
     - name: Get Debian phpMyAdmin version using aptitude
-      shell: |
+      ansible.builtin.shell: |
         set -e -o pipefail
         aptitude versions phpmyadmin | grep ^i | awk '{ print $2 }' | sed 's/.*://'
       args:
@@ -27,12 +27,12 @@
       register: phpmyadmin_debian_version_check
 
     - name: Set a fact for the phpmyadmin_debian_version
-      set_fact:
+      ansible.builtin.set_fact:
         phpmyadmin_debian_version: "{{ phpmyadmin_debian_version_check.stdout }}"
       when: phpmyadmin_debian_version_check is defined
 
     - name: Old phpmyadmin deb package absent
-      apt:
+      ansible.builtin.apt:
         pkg: phpmyadmin
         state: absent
         purge: true
@@ -41,21 +41,21 @@
       block:
 
         - name: upgrade_tables_mysql_4_1_2+.sql
-          mysql_db:
+          community.mysql.mysql_db:
             name: "{{ phpmyadmin_db }}"
             state: import
             target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
           when: phpmyadmin_debian_version is version_compare('4.1.2', '>=')
 
         - name: upgrade_column_info_4_3_0+.sql
-          mysql_db:
+          community.mysql.mysql_db:
             name: "{{ phpmyadmin_db }}"
             state: import
             target: "{{ phpmyadmin_html }}/sql/create_tables.sql"
           when: phpmyadmin_debian_version is version_compare('4.3.0', '>=')
 
         - name: upgrade_tables_4_7_0+.sql
-          mysql_db:
+          community.mysql.mysql_db:
             name: "{{ phpmyadmin_db }}"
             state: import
             target: "{{ phpmyadmin_html }}/sql/create_tables.sql"

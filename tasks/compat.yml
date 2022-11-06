@@ -3,43 +3,43 @@
   block:
 
     - name: Set phpmyadmin_dbname
-      set_fact:
+      ansible.builtin.set_fact:
         phpmyadmin_dbname: "{{ phpmyadmin_db }}"
       when:
         - phpmyadmin_db is defined
 
     - name: Set phpmyadmin_dbuser
-      set_fact:
+      ansible.builtin.set_fact:
         phpmyadmin_dbuser: "{{ phpmyadmin_db_user }}"
       when:
         - phpmyadmin_db_user is defined
 
     - name: Set phpmyadmin_dbpass
-      set_fact:
+      ansible.builtin.set_fact:
         phpmyadmin_dbpass: "{{ phpmyadmin_db_pass }}"
       when:
         - phpmyadmin_db_pass is defined
 
     - name: Set phpmyadmin_dbhost
-      set_fact:
+      ansible.builtin.set_fact:
         phpmyadmin_dbhost: "{{ phpmyadmin_db_host }}"
       when:
         - phpmyadmin_db_host is defined
 
     - name: Set phpmyadmin_dbport
-      set_fact:
+      ansible.builtin.set_fact:
         phpmyadmin_dbport: "{{ phpmyadmin_db_port }}"
       when:
         - phpmyadmin_db_port is defined
 
     - name: Set phpmyadmin_dbsocket
-      set_fact:
+      ansible.builtin.set_fact:
         phpmyadmin_dbsocket: "{{ phpmyadmin_db_socket }}"
       when:
         - phpmyadmin_db_socket is defined
 
     - name: Set phpmyadmin_docroot
-      set_fact:
+      ansible.builtin.set_fact:
         phpmyadmin_docroot: "{{ phpmyadmin_html }}"
       when:
         - phpmyadmin_html is defined
