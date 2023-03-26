@@ -1,3 +1,12 @@
+# Copyright 2019-2023 Chris Croome
+#
+# This file is part of the Webarchitects phpMyAdmin Ansible role.
+#
+# The Webarchitects phpMyAdmin Ansible role is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+#
+# The Webarchitects phpMyAdmin Ansible role is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with the Webarchitects phpMyAdmin Ansible role. If not, see <https://www.gnu.org/licenses/>.
 ---
 - name: Download and install phpMyAdmin
   block:
@@ -8,31 +17,35 @@
         state: directory
         owner: "{{ phpmyadmin_user }}"
         group: "{{ phpmyadmin_group }}"
-        mode: 0700
+        mode: "0700"
 
     - name: GPG keys present
       ansible.builtin.copy:
         src: "files/{{ key }}"
-        dest: "/root/{{ key }}"
-        owner: root
-        group: root
-        mode: 0600
+        dest: "{{ phpmyadmin_private }}/{{ key }}"
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
+        mode: "0600"
       loop:
         - github.asc
         - ibennetch.asc
       loop_control:
         loop_var: key
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
 
     - name: GitHub GPG public key imported
-      ansible.builtin.command: "gpg --import /root/{{ key }}"
+      ansible.builtin.command: "gpg --import {{ phpmyadmin_private }}/{{ key }}"
       register: phpmyadmin_gpg_import
-      changed_when: '"not changed" not in phpmyadmin_gpg_import.stderr'
+      changed_when: ( "not changed" not in phpmyadmin_gpg_import.stderr )
       check_mode: false
       loop:
         - github.asc
         - ibennetch.asc
       loop_control:
         loop_var: key
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
 
     - name: Convert the phpMyAdmin version string to a git tag
       ansible.builtin.set_fact:
@@ -53,6 +66,8 @@
         update: true
         force: true
         verify_commit: true
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
 
     - name: Chown the files
       ansible.builtin.file:
@@ -60,122 +75,6 @@
         recurse: true
         owner: "{{ phpmyadmin_user }}"
         group: "{{ phpmyadmin_group }}"
-
-    - name: Composer update for phpMyAdmin
-      community.general.composer:
-        command: update
-        no_dev: true
-        working_dir: "{{ phpmyadmin_docroot }}"
-      become: true
-      become_user: "{{ phpmyadmin_user }}"
-
-    - name: Composer packages for two factor authentication present
-      community.general.composer:
-        command: require
-        arguments: pragmarx/google2fa-qrcode
-        no_dev: true
-        working_dir: "{{ phpmyadmin_docroot }}"
-      become: true
-      become_user: "{{ phpmyadmin_user }}"
-
-    - name: yarn install for phpMyAdmin
-      community.general.yarn:
-        path: "{{ phpmyadmin_docroot }}"
-        production: true
-        state: present
-      become: true
-      become_user: "{{ phpmyadmin_user }}"
-
-    - name: Check if the database contains tables
-      ansible.builtin.command: "mysql --user={{ phpmyadmin_dbuser | quote}} --password={{ phpmyadmin_dbpass | quote }} {{ phpmyadmin_dbname | quote }} --skip-column-names --batch -e 'SHOW TABLES'"
-      check_mode: false
-      changed_when: false
-      register: phpmyadmin_dbtable_check
-      become: true
-      become_user: "{{ phpmyadmin_user }}"
-
-    - name: Database tables present
-      community.mysql.mysql_db:
-        login_unix_socket: "{{ phpmyadmin_dbsocket }}"
-        name: "{{ phpmyadmin_dbname }}"
-        state: import
-        target: "{{ phpmyadmin_docroot }}/sql/create_tables.sql"
-      when: ( phpmyadmin_dbtable_check is defined ) and ( phpmyadmin_dbtable_check.stdout | length <= 0 )
-
-    # https://docs.phpmyadmin.net/en/latest/config.html#web-dirs
-    - name: Get a list of sub-directories
-      ansible.builtin.shell: |
-        set -e -o pipefail
-        find . -maxdepth 1 -type d | grep -v ^\.$ | sed 's/\.\///' | grep -v ^js$ | grep -v ^themes$ | grep -v ^vendor$
-      args:
-        chdir: "{{ phpmyadmin_docroot }}"
-        executable: "{{ phpmyadmin_bash }}"
-      become: true
-      become_user: "{{ phpmyadmin_user }}"
-      check_mode: false
-      changed_when: false
-      register: phpmyadmin_subdirs
-
-    - name: .htaccess in place
-      ansible.builtin.copy:
-        src: files/htaccess.root
-        dest: "{{ phpmyadmin_docroot }}/.htaccess"
-        owner: "{{ phpmyadmin_user }}"
-        group: "{{ phpmyadmin_group }}"
-        mode: 0644
-
-    - name: .htaccess files in place to deny direct access to sub-directories
-      ansible.builtin.copy:
-        src: files/htaccess.deny
-        dest: "{{ phpmyadmin_docroot }}/{{ dir }}/.htaccess"
-        owner: "{{ phpmyadmin_user }}"
-        group: "{{ phpmyadmin_group }}"
-        mode: "0644"
-      loop: "{{ phpmyadmin_subdirs.stdout_lines }}"
-      loop_control:
-        loop_var: dir
-
-    - name: robots.txt in place
-      ansible.builtin.copy:
-        src: robots.txt
-        dest: "{{ phpmyadmin_docroot }}/robots.txt"
-        owner: "{{ phpmyadmin_user }}"
-        group: "{{ phpmyadmin_group }}"
-        mode: 0644
-
-    - name: Generate blowfish secret for cookies
-      ansible.builtin.shell: |
-        set -e -o pipefail
-        pwgen -sn 32 1 > {{ phpmyadmin_private }}/.blowfish.secret && chmod 400 {{ phpmyadmin_private }}/.blowfish.secret
-      args:
-        creates: "{{ phpmyadmin_private }}/.blowfish.secret"
-        executable: "{{ phpmyadmin_bash }}"
-      become: true
-      become_user: "{{ phpmyadmin_user }}"
-      check_mode: false
-
-    - name: Set a variable for the base64 encoded .blowfish.secret value
-      ansible.builtin.slurp:
-        src: "{{ phpmyadmin_private }}/.blowfish.secret"
-      register: phpmyadmin_blowfish_b64encoded
-
-    - name: Set a fact for the blowfish secret
-      ansible.builtin.set_fact:
-        phpmyadmin_blowfish_secret: "{{ phpmyadmin_blowfish_b64encoded['content'] | b64decode | trim }}"
-
-    - name: Check for config.inc.php
-      ansible.builtin.stat:
-        path: "{{ phpmyadmin_docroot }}/config.inc.php"
-      check_mode: false
-      register: phpmyadmin_config_check
-
-    - name: Generate the config.inc.php file
-      ansible.builtin.template:
-        src: templates/config.inc.php.j2
-        dest: "{{ phpmyadmin_docroot }}/config.inc.php"
-        owner: "{{ phpmyadmin_user }}"
-        group: "{{ phpmyadmin_group }}"
-        mode: 0640
 
   tags:
     - phpmyadmin

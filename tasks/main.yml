@@ -2,50 +2,26 @@
 - name: Install and upgrade phpMyAdmin
   block:
 
-    - name: Required packages present
-      ansible.builtin.apt:
-        pkg:
-          - aptitude
-          - bash
-          - git
-          - gnupg
-          - pwgen
-        state: present
+    - name: Debug the hostvars variable names that start with phpmyadmin_
+      ansible.builtin.debug:
+        var: phpmyadminvarnames
+        verbosity: "{% if ansible_check_mode | bool %}3{% else %}4{% endif %}"
 
-    - name: Run which bash
-      ansible.builtin.command: which bash
-      check_mode: false
-      changed_when: false
-      register: phpmyadmin_which_bash
-      failed_when: phpmyadmin_which_bash.stdout is not regex('\/bash$')
+    - name: Debug the hostvars variable names that start with phpmyadmin_
+      ansible.builtin.debug:
+        var: phpmyadminhostvars
+        verbosity: "{% if ansible_check_mode | bool %}3{% else %}4{% endif %}"
 
-    - name: Set a variable for the path to Bash
-      ansible.builtin.set_fact:
-        phpmyadmin_bash: "{{ phpmyadmin_which_bash.stdout }}"
+    - name: Check phpmyadmin_ variables using meta/argument_specs.yml
+      ansible.builtin.validate_argument_spec:
+        argument_spec: "{{ (lookup('ansible.builtin.file', 'meta/argument_specs.yml') | from_yaml )['argument_specs']['main']['options'] }}"
+        provided_arguments: "{{ phpmyadminhostvars }}"
 
-    # TODO Omit this when everything has been updated
-    - name: Include backwards compatibility tasks
-      ansible.builtin.include_tasks: compat.yml
-
-    # TODO Additional checks on variables could be added
-    - name: Check that required variables are defined
+    # TODO Additional checks on variable values could be added
+    - name: Check required variables
       ansible.builtin.assert:
         that:
-          - phpmyadmin_user is defined
-          - phpmyadmin_version is defined
           - ( phpmyadmin_version == "latest" ) or ( phpmyadmin_version is regex('^[0-9][.][0-9][.][0-9]{1,2}[.]{0,1}[0-9]{0,2}$') )
-          - phpmyadmin_dbname is defined
-          - phpmyadmin_dbuser is defined
-          - phpmyadmin_dbpass is defined
-          - phpmyadmin_dbhost is defined
-          - phpmyadmin_dbport is defined
-          - phpmyadmin_dbsocket is defined
-          - phpmyadmin_url is defined
-          - phpmyadmin_home is defined
-          - phpmyadmin_tmp is defined
-          - phpmyadmin_private is defined
-          - phpmyadmin_docroot is defined
-          - phpmyadmin_lang is defined
         quiet: "{% if ansible_verbosity == 0 %}true{% else %}false{% endif %}"
 
     - name: Fail if the phpMyAdmin user account doesn't exist
@@ -53,6 +29,25 @@
         database: passwd
         key: "{{ phpmyadmin_user }}"
         fail_key: true
+
+    - name: Include apt role local fact tasks
+      ansible.builtin.include_role:
+        name: apt
+        tasks_from: local_facts.yml
+      when: >-
+        ( ansible_local.bash.path is not defined ) or
+        ( ansible_local.dpkg.arch is not defined ) or
+        ( ansible_local.dpkg.installed is not defined ) or
+        ( ansible_local.gpg.version is not defined )
+
+    - name: Required packages present
+      ansible.builtin.apt:
+        pkg: "{{ phpmyadmin_pkgs }}"
+        state: present
+      when:
+        - phpmyadmin_pkgs is defined
+        - phpmyadmin_pkgs != []
+        - phpmyadmin_pkgs | difference(ansible_local.dpkg.installed) != []
 
     - name: Find the latest version of phpMyAdmin
       block:
@@ -73,33 +68,43 @@
 
       when: phpmyadmin_version == "latest"
 
-    - name: Set a fact for the proposed version of phpMyAdmin when not usig the latest version
+    - name: Set a fact for the proposed version of phpMyAdmin when not using the latest version
       ansible.builtin.set_fact:
         phpmyadmin_proposed: "{{ phpmyadmin_version | string }}"
       when: phpmyadmin_proposed is not defined
 
-    - name: Check the default version of PHP available via the command line
-      ansible.builtin.command: php --version
-      check_mode: false
-      changed_when: false
-      become: true
-      become_user: "{{ phpmyadmin_user }}"
-      register: phpmyadmin_php_version_check
+    - name: Check the version of PHP when it is not defined
+      block:
 
-    - name: Set a fact for the version of PHP available via the command line
-      ansible.builtin.set_fact:
-        php_version: "{{ ( phpmyadmin_php_version_check.stdout_lines[0] ).split(' ')[1] | string }}"
+        - name: Check the default version of PHP available via the command line
+          ansible.builtin.shell: php --version
+          args:
+            executable: "{{ ansible_local.bash.path }}"
+          environment: "{{ phpmyadmin_env }}"
+          check_mode: false
+          changed_when: false
+          become: true
+          become_user: "{{ phpmyadmin_user }}"
+          register: phpmyadmin_php_version_check
+
+        - name: Set a fact for the version of PHP available via the command line
+          ansible.builtin.set_fact:
+            phpmyadmin_php_version: "{{ ( phpmyadmin_php_version_check.stdout_lines[0] ).split(' ')[1] | string }}"
+
+      when: phpmyadmin_php_version is not defined
 
     - name: Check that if we are instaling or upgrading to phpMyAdmin 5.2.0 we have php 7.2 or newer
       ansible.builtin.assert:
         that:
-          - php_version | string is version('7.2', '>=')
+          - phpmyadmin_php_version | string is version('7.2', '>=')
         quiet: "{% if ansible_verbosity == 0 %}true{% else %}false{% endif %}"
       when: phpmyadmin_proposed | string is version('5.2.0', '>=')
 
     - name: Upgrade from phpMyAdmin deb on Stretch, Buster didn't ship it but Bullseye does again
       ansible.builtin.include_tasks: upgrade_from_deb.yml
-      when: ansible_distribution_release == "buster"
+      when:
+        - ansible_distribution_release == "buster"
+        - ( "phpmyadmin" in ansible_local.dpkg.installed )
 
     - name: Check for package.json
       ansible.builtin.stat:
@@ -130,11 +135,18 @@
           ansible.builtin.include_tasks: phpmyadmin.yml
           when: ( phpmyadmin_installed is defined ) and ( phpmyadmin_installed is version(phpmyadmin_proposed, '<') )
 
-      when: ( phpmyadmin_package_json is defined ) and ( phpmyadmin_package_json.stat.exists )
+      when:
+        - phpmyadmin_package_json is defined
+        - phpmyadmin_package_json.stat.exists | bool
 
     - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
       ansible.builtin.include_tasks: phpmyadmin.yml
-      when: ( phpmyadmin_package_json is not defined ) or ( not phpmyadmin_package_json.stat.exists )
+      when: >-
+        ( phpmyadmin_package_json is not defined ) or
+        ( not phpmyadmin_package_json.stat.exists | bool )
+
+    - name: Configure phpMyAdmin
+      ansible.builtin.include_tasks: config.yml
 
     - name: Load installed phpMyAdmin version variable from package.json
       ansible.builtin.include_tasks: version.yml
@@ -143,6 +155,7 @@
       ansible.builtin.debug:
         var: phpmyadmin_installed
 
+  when: phpmyadmin | bool
   tags:
     - phpmyadmin
 ...

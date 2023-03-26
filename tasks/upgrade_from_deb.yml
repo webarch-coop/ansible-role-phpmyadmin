@@ -1,18 +1,5 @@
 ---
 # TODO Update tasks so they don't use the shell module
-
-- name: Check if a Debian package is installed
-  ansible.builtin.shell: |
-    set -e -o pipefail
-    aptitude versions phpmyadmin | grep -q ^i && echo INSTALLED || echo NOTFOUND
-  args:
-    executable: "{{ phpmyadmin_bash }}"
-  check_mode: false
-  changed_when: false
-  register: phpmyadmin_debian_installed
-  tags:
-    - phpmyadmin
-
 - name: Upgrade from a Debian package version
   block:
 
@@ -21,7 +8,8 @@
         set -e -o pipefail
         aptitude versions phpmyadmin | grep ^i | awk '{ print $2 }' | sed 's/.*://'
       args:
-        executable: "{{ phpmyadmin_bash }}"
+        executable: "{{ ansible_local.bash.path }}"
+      environment: "{{ phpmyadmin_env }}"
       check_mode: false
       changed_when: false
       register: phpmyadmin_debian_version_check

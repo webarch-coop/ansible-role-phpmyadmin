@@ -19,4 +19,6 @@ phpmyadmin_lang: en
 phpmyadmin_deny_root: true
 phpmyadmin_deny_users:
   - "{{ phpmyadmin_user }}"
+phpmyadmin_env:
+  PATH: "/usr/local/bin:/usr/bin:/bin"
 ...
