@@ -1,5 +1,8 @@
 ---
-phpmyadmin_version: latest
+# The GitHub latest redirect points to the 4.9 version
+# https://github.com/phpmyadmin/phpmyadmin/releases/latest
+# phpmyadmin_version: latest
+phpmyadmin_version: 5.2.1
 # This role doesn't create the user or group
 phpmyadmin_user: www-data
 phpmyadmin_group: "{{ phpmyadmin_user }}"

@@ -100,21 +100,15 @@
         quiet: "{% if ansible_verbosity == 0 %}true{% else %}false{% endif %}"
       when: phpmyadmin_proposed | string is version('5.2.0', '>=')
 
-    - name: Upgrade from phpMyAdmin deb on Stretch, Buster didn't ship it but Bullseye does again
-      ansible.builtin.include_tasks: upgrade_from_deb.yml
-      when:
-        - ansible_distribution_release == "buster"
-        - ( "phpmyadmin" in ansible_local.dpkg.installed )
-
     - name: Check for package.json
       ansible.builtin.stat:
         path: "{{ phpmyadmin_docroot }}/package.json"
       register: phpmyadmin_package_json
 
-    - name: When phpMyAdmin is already installed upgrade if needed
+    - name: Check phpMyAdmin version
       block:
 
-        - name: Load installed phpMyAdmin version variable from package.json
+        - name: Check phpMyAdmin version
           ansible.builtin.include_tasks: version.yml
 
         - name: Debug phpMyAdmin version installed
@@ -131,24 +125,21 @@
               - phpmyadmin_proposed is version(phpmyadmin_installed, '>=')
             quiet: "{% if ansible_verbosity == 0 %}true{% else %}false{% endif %}"
 
-        - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
-          ansible.builtin.include_tasks: phpmyadmin.yml
-          when: ( phpmyadmin_installed is defined ) and ( phpmyadmin_installed is version(phpmyadmin_proposed, '<') )
+      when: phpmyadmin_package_json.stat.exists | bool
 
-      when:
-        - phpmyadmin_package_json is defined
-        - phpmyadmin_package_json.stat.exists | bool
-
-    - name: Include tasks to ensure that the required version of the phpMyAdmin source code is present
-      ansible.builtin.include_tasks: phpmyadmin.yml
+    - name: Include phpMyAdmin install tasks
+      ansible.builtin.include_tasks: install.yml
       when: >-
-        ( phpmyadmin_package_json is not defined ) or
-        ( not phpmyadmin_package_json.stat.exists | bool )
+        ( not phpmyadmin_package_json.stat.exists | bool ) or
+        ( ( phpmyadmin_package_json is defined ) and
+        ( phpmyadmin_package_json.stat.exists | bool ) and
+        ( phpmyadmin_installed is defined ) and
+        ( phpmyadmin_installed is version(phpmyadmin_proposed, '<') ) )
 
-    - name: Configure phpMyAdmin
+    - name: Include phpMyAdmin configure tasks
       ansible.builtin.include_tasks: config.yml
 
-    - name: Load installed phpMyAdmin version variable from package.json
+    - name: Check phpMyAdmin version
       ansible.builtin.include_tasks: version.yml
 
     - name: Print the phpMyAdmin version that is installed

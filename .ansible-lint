@@ -4,6 +4,5 @@ skip_list:
   - jinja[spacing]
   - key-order[task]
   - schema[meta]
-  - name[casing]
 # vim: syntax=yaml
 ...

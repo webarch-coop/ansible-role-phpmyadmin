@@ -1,0 +1,124 @@
+# Copyright 2019-2023 Chris Croome
+#
+# This file is part of the Webarchitects phpMyAdmin Ansible role.
+#
+# The Webarchitects phpMyAdmin Ansible role is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+#
+# The Webarchitects phpMyAdmin Ansible role is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with the Webarchitects phpMyAdmin Ansible role. If not, see <https://www.gnu.org/licenses/>.
+---
+- name: Download and install phpMyAdmin
+  block:
+
+    - name: GPG public keyring present
+      ansible.builtin.get_url:
+        url: "https://files.phpmyadmin.net/phpmyadmin.keyring"
+        dest: "{{ phpmyadmin_private }}/phpmyadmin.keyring"
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
+        mode: "0600"
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
+
+    - name: Stat GPG public keyring
+      ansible.builtin.stat:
+        path: "{{ phpmyadmin_private }}/phpmyadmin.keyring"
+      register: phpmyadmin_keyring
+
+    - name: GitHub GPG public keys imported
+      ansible.builtin.command: "gpg --import {{ phpmyadmin_private }}/phpmyadmin.keyring"
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
+      register: phpmyadmin_gpg_import
+      changed_when: ( "not changed" not in phpmyadmin_gpg_import.stderr )
+      when: phpmyadmin_keyring.stat.exists
+
+    - name: Download phpMyAdmin archive
+      ansible.builtin.get_url:
+        url: "https://files.phpmyadmin.net/phpMyAdmin/{{ phpmyadmin_proposed }}/phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages.zip"
+        dest: "{{ phpmyadmin_private }}/phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages.zip"
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
+        mode: "0600"
+
+    - name: Download phpMyAdmin archive GPG signature
+      ansible.builtin.get_url:
+        url: "https://files.phpmyadmin.net/phpMyAdmin/{{ phpmyadmin_proposed }}/phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages.zip.asc"
+        dest: "{{ phpmyadmin_private }}/phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages.zip.asc"
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
+        mode: "0600"
+
+    - name: Stat phpMyAdmin archive
+      ansible.builtin.stat:
+        path: "{{ phpmyadmin_private }}/phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages.zip"
+      register: phpmyadmin_archive
+
+    - name: Stat phpMyAdmin archive GPG signature
+      ansible.builtin.stat:
+        path: "{{ phpmyadmin_private }}/phpmyadmin.keyring"
+      register: phpmyadmin_keyring_sig
+
+    - name: Check phpMyAdmin archive GPG signature
+      ansible.builtin.command: >-
+        gpg --no-tty --verify --logger-fd 1
+        "{{ phpmyadmin_private }}/phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages.zip.asc"
+        "{{ phpmyadmin_private }}/phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages.zip"
+      check_mode: false
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
+      register: phpmyadmin_archive_sig_check
+      changed_when: false
+      failed_when: >-
+        ( phpmyadmin_archive_sig_check.rc != 0 ) or
+        ( "Good signature from" not in phpmyadmin_archive_sig_check.stdout )
+      when:
+        - phpmyadmin_gpg_import.rc == 0
+        - phpmyadmin_archive.stat.exists | bool
+        - phpmyadmin_keyring_sig.stat.exists | bool
+
+    - name: Check if phpMyAdmin index.php exists in the DocumentRoot
+      ansible.builtin.stat:
+        path: "{{ phpmyadmin_docroot }}/index.php"
+      register: phpmyadmin_index
+
+    - name: Archive uncompressed into the DocumentRoot
+      ansible.builtin.unarchive:
+        src: "{{ phpmyadmin_private }}/phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages.zip"
+        dest: "{{ phpmyadmin_private }}"
+        remote_src: true
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
+      when: phpmyadmin_archive.stat.exists | bool
+
+    - name: Existing phpMyAdmin DocumentRoot absent
+      ansible.builtin.file:
+        path: "{{ phpmyadmin_docroot }}"
+        state: absent
+      when: phpmyadmin_index.stat.exists | bool
+
+    - name: Uncompressed phpMyAdmin files moved into place
+      ansible.builtin.shell: "mv -T phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages {{ phpmyadmin_docroot }}"
+      args:
+        chdir: "{{ phpmyadmin_private }}"
+        executable: "{{ ansible_local.bash.path }}"
+      environment: "{{ phpmyadmin_env }}"
+      changed_when: true
+      become: true
+      become_user: "{{ phpmyadmin_user }}"
+
+    - name: Check if phpMyAdmin index.php exists in the DocumentRoot
+      ansible.builtin.stat:
+        path: "{{ phpmyadmin_docroot }}/index.php"
+      register: phpmyadmin_index
+
+    - name: Fail when this role is not running in check mode and the index.php doesn't exist
+      ansible.builtin.fail:
+      when:
+        - not ansible_check_mode | bool
+        - not phpmyadmin_index.stat.exists
+
+  tags:
+    - phpmyadmin
+...

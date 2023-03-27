@@ -11,40 +11,32 @@
 - name: Configure phpMyAdmin
   block:
 
-    - name: Composer update for phpMyAdmin
-      community.general.composer:
-        command: update
-        no_dev: true
-        working_dir: "{{ phpmyadmin_docroot }}"
-      environment: "{{ phpmyadmin_env }}"
-      become: true
-      become_user: "{{ phpmyadmin_user }}"
+    - name: DocumentRoot .htaccess in place
+      ansible.builtin.copy:
+        src: files/htaccess.root
+        dest: "{{ phpmyadmin_docroot }}/.htaccess"
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
+        mode: "0644"
 
-    # - name: Composer packages for two factor authentication present
-    #   community.general.composer:
-    #     command: require
-    #     arguments: pragmarx/google2fa-qrcode
-    #     no_dev: true
-    #     working_dir: "{{ phpmyadmin_docroot }}"
-    #   become: true
-    #   become_user: "{{ phpmyadmin_user }}"
-
-    - name: Yarn install for phpMyAdmin
-      community.general.yarn:
-        path: "{{ phpmyadmin_docroot }}"
-        production: true
-        state: present
-      become: true
-      become_user: "{{ phpmyadmin_user }}"
-
-    # TODO Replace this with the community.mysql.mysql_query module
     - name: Check if the database contains tables
-      ansible.builtin.command: "mysql --user={{ phpmyadmin_dbuser | quote}} --password={{ phpmyadmin_dbpass | quote }} {{ phpmyadmin_dbname | quote }} --skip-column-names --batch -e 'SHOW TABLES'"
-      check_mode: false
-      changed_when: false
-      register: phpmyadmin_dbtable_check
-      become: true
-      become_user: "{{ phpmyadmin_user }}"
+      community.mysql.mysql_query:
+        login_unix_socket: "{{ phpmyadmin_dbsocket }}"
+        login_db: "{{ phpmyadmin_dbname }}"
+        query: SHOW TABLES
+      register: phpmyadmin_show_tables
+
+    - name: Debug database query
+      ansible.builtin.debug:
+        var: phpmyadmin_show_tables.query_result
+        verbosity: "{% if ansible_check_mode | bool %}2{% else %}3{% endif %}"
+
+    - name: Debug database query result
+      ansible.builtin.debug:
+        msg:
+          - "{{ phpmyadmin_show_tables.query_result | community.general.json_query('[].*[]') }}"
+          - "{{ phpmyadmin_show_tables.query_result | community.general.json_query('[].*[]') }} | length "
+        verbosity: "{% if ansible_check_mode | bool %}1{% else %}2{% endif %}"
 
     - name: Database tables present
       community.mysql.mysql_db:
@@ -52,7 +44,9 @@
         name: "{{ phpmyadmin_dbname }}"
         state: import
         target: "{{ phpmyadmin_docroot }}/sql/create_tables.sql"
-      when: ( phpmyadmin_dbtable_check is defined ) and ( phpmyadmin_dbtable_check.stdout | length <= 0 )
+      when: >-
+        ( phpmyadmin_show_tables.query_result is not defined ) or
+        ( phpmyadmin_show_tables.query_result | community.general.json_query('[].*[]') | length == 0 )
 
     # TODO Replace this with the ansible.builtin.find module
     # https://docs.phpmyadmin.net/en/latest/config.html#web-dirs
@@ -70,26 +64,40 @@
       changed_when: false
       register: phpmyadmin_subdirs
 
-    - name: .htaccess in place
-      ansible.builtin.copy:
-        src: files/htaccess.root
-        dest: "{{ phpmyadmin_docroot }}/.htaccess"
-        owner: "{{ phpmyadmin_user }}"
-        group: "{{ phpmyadmin_group }}"
-        mode: "0644"
+    - name: Find a list of sub-directories of the DocumentRoot
+      ansible.builtin.find:
+        path: "{{ phpmyadmin_docroot }}"
+        depth: 1
+        file_type: directory
+        hidden: true
+      register: phpmyadmin_find
 
-    - name: .htaccess files in place to deny direct access to sub-directories
+    - name: Set a fact for the DocumentRoot sub-directories
+      ansible.builtin.set_fact:
+        phpmyadmin_subdirs: "{{ phpmyadmin_find | community.general.json_query('files[].path') }}"
+
+    - name: Debug find sub-directories
+      ansible.builtin.debug:
+        msg: "{{ phpmyadmin_find | community.general.json_query('files[].path') }}"
+        verbosity: "{% if ansible_check_mode | bool %}1{% else %}2{% endif %}"
+
+    - name: Sub-directory .htaccess files in place to deny access
       ansible.builtin.copy:
         src: files/htaccess.deny
-        dest: "{{ phpmyadmin_docroot }}/{{ dir }}/.htaccess"
+        dest: "{{ phpmyadmin_dir }}/.htaccess"
         owner: "{{ phpmyadmin_user }}"
         group: "{{ phpmyadmin_group }}"
         mode: "0644"
-      loop: "{{ phpmyadmin_subdirs.stdout_lines }}"
+      when:
+        - phpmyadmin_dir | basename !="js"
+        - phpmyadmin_dir | basename !="themes"
+        - phpmyadmin_dir | basename !="vendor"
+      loop: "{{ phpmyadmin_subdirs }}"
       loop_control:
-        loop_var: dir
+        loop_var: phpmyadmin_dir
+        label: "{{ phpmyadmin_dir | basename }}"
 
-    - name: robots.txt in place
+    - name: Deny bots robots.txt in place
       ansible.builtin.copy:
         src: robots.txt
         dest: "{{ phpmyadmin_docroot }}/robots.txt"
