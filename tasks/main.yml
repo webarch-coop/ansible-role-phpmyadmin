@@ -40,6 +40,12 @@
         ( ansible_local.dpkg.installed is not defined ) or
         ( ansible_local.gpg.version is not defined )
 
+    - name: Please remove the phpmyadmin package if you wish to install phpMyAdmin using this role
+      ansible.builtin.assert:
+        that:
+          - ( "phpmyadmin" not in ansible_local.dpkg.installed )
+        quiet: "{% if ansible_verbosity == 0 %}true{% else %}false{% endif %}"
+
     - name: Required packages present
       ansible.builtin.apt:
         pkg: "{{ phpmyadmin_pkgs }}"
