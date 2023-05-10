@@ -14,7 +14,7 @@
 
     - name: Check phpmyadmin_ variables using meta/argument_specs.yml
       ansible.builtin.validate_argument_spec:
-        argument_spec: "{{ (lookup('ansible.builtin.file', 'meta/argument_specs.yml') | from_yaml )['argument_specs']['main']['options'] }}"
+        argument_spec: "{{ (lookup('ansible.builtin.file', 'meta/argument_specs.yml') | from_yaml)['argument_specs']['main']['options'] }}"
         provided_arguments: "{{ phpmyadminhostvars }}"
 
     # TODO Additional checks on variable values could be added
@@ -95,7 +95,7 @@
 
         - name: Set a fact for the version of PHP available via the command line
           ansible.builtin.set_fact:
-            phpmyadmin_php_version: "{{ ( phpmyadmin_php_version_check.stdout_lines[0] ).split(' ')[1] | string }}"
+            phpmyadmin_php_version: "{{ (phpmyadmin_php_version_check.stdout_lines[0]).split(' ')[1] | string }}"
 
       when: phpmyadmin_php_version is not defined
 
