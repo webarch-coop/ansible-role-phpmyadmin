@@ -67,6 +67,10 @@ argument_specs:
         type: str
         required: true
         description: The phpMyAdmin users home directory.
+      phpmyadmin_gpg_public_key_checksum:
+        type: str
+        required: true
+        description: The GPG public key checksum.
       phpmyadmin_group:
         type: str
         required: true

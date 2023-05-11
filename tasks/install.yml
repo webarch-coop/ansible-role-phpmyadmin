@@ -23,6 +23,7 @@
       ansible.builtin.get_url:
         url: "https://files.phpmyadmin.net/phpmyadmin.keyring"
         dest: "{{ phpmyadmin_private }}/phpmyadmin.keyring"
+        checksum: "{{ phpmyadmin_gpg_public_key_checksum }}"
         owner: "{{ phpmyadmin_user }}"
         group: "{{ phpmyadmin_group }}"
         mode: "0600"
