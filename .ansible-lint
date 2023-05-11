@@ -1,7 +1,6 @@
 ---
 # https://ansible-lint.readthedocs.io/rules/
 skip_list:
-  # - jinja[spacing]
   - key-order[task]
 # vim: syntax=yaml
 ...

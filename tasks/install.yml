@@ -12,7 +12,7 @@
   block:
 
     - name: Ensure that the private directory exists
-      file:
+      ansible.builtin.file:
         path: "{{ phpmyadmin_private }}"
         state: directory
         owner: "{{ phpmyadmin_user }}"
