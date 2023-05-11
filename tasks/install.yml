@@ -11,6 +11,14 @@
 - name: Download and install phpMyAdmin
   block:
 
+    - name: Ensure that the private directory exists
+      file:
+        path: "{{ phpmyadmin_private }}"
+        state: directory
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
+        mode: "0600"
+
     - name: GPG public keyring present
       ansible.builtin.get_url:
         url: "https://files.phpmyadmin.net/phpmyadmin.keyring"
