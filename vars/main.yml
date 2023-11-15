@@ -11,7 +11,7 @@
 # https://docs.ansible.com/ansible/latest/playbook_guide/complex_data_manipulation.html
 phpmyadminvarnames: "{{ q('varnames', '^phpmyadmin_') | sort }}"
 phpmyadminhostvars: "{{ dict(phpmyadminvarnames | list | zip(q('vars', *phpmyadminvarnames))) }}"
-phpmyadmin_gpg_public_key_checksum: "sha265:4ebd2ca35e620dbff836f2661c5bce5e091b73ed29efeaddf6a2eb448d73680e"
+phpmyadmin_gpg_public_key_checksum: "sha256:4ebd2ca35e620dbff836f2661c5bce5e091b73ed29efeaddf6a2eb448d73680e"
 phpmyadmin_pkgs:
   - aptitude
   - bash
