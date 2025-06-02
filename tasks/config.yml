@@ -1,4 +1,4 @@
-# Copyright 2019-2023 Chris Croome
+# Copyright 2019-2025 Chris Croome
 #
 # This file is part of the Webarchitects phpMyAdmin Ansible role.
 #
@@ -47,6 +47,13 @@
       when: >-
         ( phpmyadmin_show_tables.query_result is not defined ) or
         ( phpmyadmin_show_tables.query_result | community.general.json_query('[].*[]') | length == 0 )
+
+    - name: "Ensure that ~/.ansible is owned by and in the group of {{ phpmyadmin_user }}"
+      ansible.builtin.file:
+        path: "{{ phpmyadmin_home }}/.ansible"
+        recurse: true
+        owner: "{{ phpmyadmin_user }}"
+        group: "{{ phpmyadmin_group }}"
 
     # TODO Replace this with the ansible.builtin.find module
     # https://docs.phpmyadmin.net/en/latest/config.html#web-dirs
