@@ -31,7 +31,6 @@ For the configurable variables see [defaults/main.yml](defaults/main.yml):
 | `phpmyadmin_deny_root`  | `true`                               | Deny the MySQL / MariaDB `root` user to login to phpMyAdmin                                                                                                    |
 | `phpmyadmin_deny_users` | `- "{{ phpmyadmin_user }}"`          | An array of MySQL / MariaDB user names that are denied access to login to phpMyAdmin                                                                           |
 
-
 The primary URL of this repo is [`https://git.coop/webarch/phpmyadmin`](https://git.coop/webarch/phpmyadmin) however it is also [mirrored to GitHub](https://github.com/webarch-coop/ansible-role-phpmyadmin) and [available via Ansible Galaxy](https://galaxy.ansible.com/chriscroome/phpmyadmin).
 
 If you use this role please use a tagged release, see [the release notes](https://git.coop/webarch/phpmyadmin/-/releases).
