@@ -9,16 +9,24 @@
 
     - name: Set facts from package.json variables
       ansible.builtin.set_fact:
-        phpmyadmin_vars: "{{ phpmyadmin_vars_b64encoded['content'] | b64decode | from_json }}"
+        phpmyadmin_vars: "{{ phpmyadmin_vars_b64encoded['content'] | ansible.builtin.b64decode | ansible.builtin.from_json }}"
 
     - name: Debug package.json variables
       ansible.builtin.debug:
         var: phpmyadmin_vars
-        verbosity: 2
+        verbosity: "{% if ansible_check_mode | bool or ansible_diff_mode | bool %}1{% else %}2{% endif %}"
+      tags:
+        - debug
 
     - name: Set phpmyadmin_installed variable from package.json variables
       ansible.builtin.set_fact:
         phpmyadmin_installed: "{{ phpmyadmin_vars.version | string }}"
+
+    - name: Check that phpmyadmin_installed is a semver
+      ansible.builtin.assert:
+        that:
+          - phpmyadmin_installed is version('3.0.0', 'gt', version_type='semver')
+        quiet: "{% if ansible_verbosity == 0 %}true{% else %}false{% endif %}"
 
   tags:
     - phpmyadmin

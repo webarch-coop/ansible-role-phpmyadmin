@@ -24,19 +24,33 @@
         login_unix_socket: "{{ phpmyadmin_dbsocket }}"
         login_db: "{{ phpmyadmin_dbname }}"
         query: SHOW TABLES
+      check_mode: false
       register: phpmyadmin_show_tables
+
+    - name: Debug phpmyadmin_show_tables
+      ansible.builtin.debug:
+        var: phpmyadmin_show_tables
+        verbosity: "{% if ansible_check_mode | bool %}2{% else %}3{% endif %}"
+      tags:
+        - debug
 
     - name: Debug database query
       ansible.builtin.debug:
         var: phpmyadmin_show_tables.query_result
-        verbosity: "{% if ansible_check_mode | bool %}2{% else %}3{% endif %}"
+        verbosity: "{% if ansible_check_mode | bool %}1{% else %}2{% endif %}"
+      when: phpmyadmin_show_tables.query_result is defined
+      tags:
+        - debug
 
     - name: Debug database query result
       ansible.builtin.debug:
         msg:
           - "{{ phpmyadmin_show_tables.query_result | community.general.json_query('[].*[]') }}"
           - "{{ phpmyadmin_show_tables.query_result | community.general.json_query('[].*[]') }} | length "
-        verbosity: "{% if ansible_check_mode | bool %}1{% else %}2{% endif %}"
+        verbosity: "{% if ansible_check_mode | bool %}0{% else %}1{% endif %}"
+      when: phpmyadmin_show_tables.query_result is defined
+      tags:
+        - debug
 
     - name: Database tables present
       community.mysql.mysql_db:
@@ -60,7 +74,7 @@
     - name: Get a list of sub-directories
       ansible.builtin.shell: |
         set -e -o pipefail
-        find . -maxdepth 1 -type d | grep -v ^\.$ | sed 's/\.\///' | grep -v ^js$ | grep -v ^themes$ | grep -v ^vendor$
+        find . -maxdepth 1 -type d | grep -v '^\.$' | sed 's/\.\///' | grep -v '^js$' | grep -v '^themes$' | grep -v '^vendor$'
       args:
         chdir: "{{ phpmyadmin_docroot }}"
         executable: "{{ ansible_local.bash.path }}"
@@ -71,6 +85,13 @@
       changed_when: false
       register: phpmyadmin_subdirs
 
+    - name: Debug phpmyadmin_subdirs
+      ansible.builtin.debug:
+        var: phpmyadmin_subdirs
+        verbosity: "{% if ansible_check_mode | bool %}1{% else %}2{% endif %}"
+      tags:
+        - debug
+
     - name: Find a list of sub-directories of the DocumentRoot
       ansible.builtin.find:
         path: "{{ phpmyadmin_docroot }}"
@@ -78,6 +99,13 @@
         file_type: directory
         hidden: true
       register: phpmyadmin_find
+
+    - name: Debug phpmyadmin_find
+      ansible.builtin.debug:
+        var: phpmyadmin_find
+        verbosity: "{% if ansible_check_mode | bool %}1{% else %}2{% endif %}"
+      tags:
+        - debug
 
     - name: Set a fact for the DocumentRoot sub-directories
       ansible.builtin.set_fact:
@@ -87,6 +115,8 @@
       ansible.builtin.debug:
         msg: "{{ phpmyadmin_find | community.general.json_query('files[].path') }}"
         verbosity: "{% if ansible_check_mode | bool %}1{% else %}2{% endif %}"
+      tags:
+        - debug
 
     - name: Sub-directory .htaccess files in place to deny access
       ansible.builtin.copy:
@@ -115,7 +145,7 @@
     - name: Generate blowfish secret for cookies
       ansible.builtin.shell: |
         set -e -o pipefail
-        pwgen -sn 32 1 > {{ phpmyadmin_private }}/.blowfish.secret && chmod 400 {{ phpmyadmin_private }}/.blowfish.secret
+        pwgen -sn 32 1 > "{{ phpmyadmin_private }}/.blowfish.secret" && chmod 400 "{{ phpmyadmin_private }}/.blowfish.secret"
       args:
         creates: "{{ phpmyadmin_private }}/.blowfish.secret"
         executable: "{{ ansible_local.bash.path }}"
@@ -131,7 +161,7 @@
 
     - name: Set a fact for the blowfish secret
       ansible.builtin.set_fact:
-        phpmyadmin_blowfish_secret: "{{ phpmyadmin_blowfish_b64encoded['content'] | b64decode | trim }}"
+        phpmyadmin_blowfish_secret: "{{ phpmyadmin_blowfish_b64encoded['content'] | ansible.builtin.b64decode | trim }}"
 
     - name: Config file present
       ansible.builtin.template:

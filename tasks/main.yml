@@ -6,11 +6,15 @@
       ansible.builtin.debug:
         var: phpmyadminvarnames
         verbosity: "{% if ansible_check_mode | bool %}3{% else %}4{% endif %}"
+      tags:
+        - debug
 
     - name: Debug the hostvars variable names that start with phpmyadmin_
       ansible.builtin.debug:
         var: phpmyadminhostvars
         verbosity: "{% if ansible_check_mode | bool %}3{% else %}4{% endif %}"
+      tags:
+        - debug
 
     - name: Check phpmyadmin_ variables using meta/argument_specs.yml
       ansible.builtin.validate_argument_spec:
@@ -120,10 +124,14 @@
         - name: Debug phpMyAdmin version installed
           ansible.builtin.debug:
             var: phpmyadmin_installed
+          tags:
+            - debug
 
         - name: Debug phpMyAdmin version proposed
           ansible.builtin.debug:
             var: phpmyadmin_proposed
+          tags:
+            - debug
 
         - name: Don't allow downgrades of phpMyAdmin
           ansible.builtin.assert:
