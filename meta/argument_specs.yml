@@ -1,4 +1,4 @@
-# Copyright 2019-2025 Chris Croome
+# Copyright 2019-2026 Chris Croome
 #
 # This file is part of the Webarchitects phpMyAdmin Ansible role.
 #
@@ -18,6 +18,19 @@ argument_specs:
         type: bool
         required: true
         description: Run the tasks in this role.
+      phpmyadmin_allow_deny_order:
+        type: str
+        required: true
+        description: AllowDeny order for users.
+        choices:
+          - allow,deny
+          - deny,allow
+          - explicit
+      phpmyadmin_allow_users:
+        type: list
+        elements: str
+        required: false
+        description: An array of users who are allowed to login.
       phpmyadmin_dbhost:
         type: str
         required: true

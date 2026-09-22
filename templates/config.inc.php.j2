@@ -33,15 +33,21 @@ $cfg['Servers'][$i]['AllowNoPassword'] = false;
 {% if phpmyadmin_deny_root is defined and phpmyadmin_deny_root == True %}
 $cfg['Servers'][$i]['AllowRoot'] = false;
 {% endif %}
-{% if phpmyadmin_deny_users is defined %}
-$cfg['Servers'][$i]['AllowDeny']['order'] = 'deny,allow';
+$cfg['Servers'][$i]['AllowDeny']['order'] = '{{ phpmyadmin_allow_deny_order }}';
 $cfg['Servers'][$i]['AllowDeny']['rules'] = array(
-{% for user in phpmyadmin_deny_users %}
-    'deny {{ user }} from all'{% if not loop.last %},{% endif %}
+{% if phpmyadmin_allow_users is defined and phpmyadmin_allow_users != [] %}
+{%     for phpmyadmin_user in phpmyadmin_allow_users %}
+    'allow {{ phpmyadmin_user }} from all'{% if not loop.last %},{% endif %}
 
-{% endfor %}
-);
+{%     endfor %}
 {% endif %}
+{% if phpmyadmin_deny_users is defined and phpmyadmin_deny_users != [] %}
+{%     for phpmyadmin_user in phpmyadmin_deny_users %}
+    'deny {{ phpmyadmin_user }} from all'{% if not loop.last %},{% endif %}
+
+{%     endfor %}
+{% endif %}
+);
 
 /**
  * phpMyAdmin configuration storage settings.

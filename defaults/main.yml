@@ -17,6 +17,9 @@ phpmyadmin_docroot: "{{ phpmyadmin_home }}/phpmyadmin"
 phpmyadmin_tmp: /tmp
 phpmyadmin_lang: en
 phpmyadmin_deny_root: true
+# https://docs.phpmyadmin.net/en/latest/config.html#cfg_Servers_AllowDeny_order
+phpmyadmin_allow_deny_order: allow,deny
+phpmyadmin_allow_users: []
 phpmyadmin_deny_users:
   - "{{ phpmyadmin_user }}"
 phpmyadmin_env:
