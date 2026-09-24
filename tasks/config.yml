@@ -53,7 +53,7 @@
         - debug
 
     - name: Database tables present
-      ansible.mariadb.mariadb_db module:
+      ansible.mariadb.mariadb_db:
         login_unix_socket: "{{ phpmyadmin_dbsocket }}"
         name: "{{ phpmyadmin_dbname }}"
         state: import
