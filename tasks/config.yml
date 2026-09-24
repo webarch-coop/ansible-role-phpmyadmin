@@ -20,7 +20,7 @@
         mode: "0644"
 
     - name: Check if the database contains tables
-      community.mysql.mysql_query:
+      ansible.mariadb.mariadb_query:
         login_unix_socket: "{{ phpmyadmin_dbsocket }}"
         login_db: "{{ phpmyadmin_dbname }}"
         query: SHOW TABLES
@@ -53,14 +53,14 @@
         - debug
 
     - name: Database tables present
-      community.mysql.mysql_db:
+      ansible.mariadb.mariadb_db module:
         login_unix_socket: "{{ phpmyadmin_dbsocket }}"
         name: "{{ phpmyadmin_dbname }}"
         state: import
         target: "{{ phpmyadmin_docroot }}/sql/create_tables.sql"
       when: >-
-        ( phpmyadmin_show_tables.query_result is not defined ) or
-        ( phpmyadmin_show_tables.query_result | community.general.json_query('[].*[]') | length == 0 )
+        (phpmyadmin_show_tables.query_result is not defined) or
+        (phpmyadmin_show_tables.query_result | community.general.json_query('[].*[]') | length == 0)
 
     - name: "Ensure that ~/.ansible is owned by and in the group of {{ phpmyadmin_user }}"
       ansible.builtin.file:
@@ -72,10 +72,10 @@
     # TODO Replace this with the ansible.builtin.find module
     # https://docs.phpmyadmin.net/en/latest/config.html#web-dirs
     - name: Get a list of sub-directories
-      ansible.builtin.shell: |
-        set -e -o pipefail
-        find . -maxdepth 1 -type d | grep -v '^\.$' | sed 's/\.\///' | grep -v '^js$' | grep -v '^themes$' | grep -v '^vendor$'
-      args:
+      ansible.builtin.shell:
+        cmd: |-
+          set -e -o pipefail
+          find . -maxdepth 1 -type d | grep -v '^\.$' | sed 's/\.\///' | grep -v '^js$' | grep -v '^themes$' | grep -v '^vendor$'
         chdir: "{{ phpmyadmin_docroot }}"
         executable: "{{ ansible_local.bash.path }}"
       environment: "{{ phpmyadmin_env }}"
@@ -143,10 +143,10 @@
         mode: "0644"
 
     - name: Generate blowfish secret for cookies
-      ansible.builtin.shell: |
-        set -e -o pipefail
-        pwgen -sn 32 1 > "{{ phpmyadmin_private }}/.blowfish.secret" && chmod 400 "{{ phpmyadmin_private }}/.blowfish.secret"
-      args:
+      ansible.builtin.shell:
+        cmd: |-
+          set -e -o pipefail
+          pwgen -sn 32 1 > "{{ phpmyadmin_private }}/.blowfish.secret" && chmod 400 "{{ phpmyadmin_private }}/.blowfish.secret"
         creates: "{{ phpmyadmin_private }}/.blowfish.secret"
         executable: "{{ ansible_local.bash.path }}"
       environment: "{{ phpmyadmin_env }}"

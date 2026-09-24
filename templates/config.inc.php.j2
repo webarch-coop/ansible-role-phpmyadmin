@@ -38,6 +38,7 @@ $cfg['Servers'][$i]['AllowDeny']['order'] = '{{ phpmyadmin_allow_deny_order }}';
 $cfg['Servers'][$i]['AllowDeny']['rules'] = array(
 {%     for phpmyadmin_rule in phpmyadmin_allow_deny_rules %}
     '{{ phpmyadmin_rule }}'{% if not loop.last %},{% endif %}
+
 {%     endfor %}
 );
 {% endif %}

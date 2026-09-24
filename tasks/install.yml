@@ -36,11 +36,12 @@
       register: phpmyadmin_keyring
 
     - name: GitHub GPG public keys imported
-      ansible.builtin.command: "gpg --import {{ phpmyadmin_private }}/phpmyadmin.keyring"
+      ansible.builtin.command:
+        cmd: "gpg --import {{ phpmyadmin_private }}/phpmyadmin.keyring"
       become: true
       become_user: "{{ phpmyadmin_user }}"
       register: phpmyadmin_gpg_import
-      changed_when: ( "not changed" not in phpmyadmin_gpg_import.stderr )
+      changed_when: ("not changed" not in phpmyadmin_gpg_import.stderr)
       when: phpmyadmin_keyring.stat.exists
 
     - name: Download phpMyAdmin archive
@@ -70,18 +71,19 @@
       register: phpmyadmin_keyring_sig
 
     - name: Check phpMyAdmin archive GPG signature
-      ansible.builtin.command: >-
-        gpg --no-tty --verify --logger-fd 1
-        "{{ phpmyadmin_private }}/phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages.zip.asc"
-        "{{ phpmyadmin_private }}/phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages.zip"
+      ansible.builtin.command:
+        cmd: >-
+          gpg --no-tty --verify --logger-fd 1
+          "{{ phpmyadmin_private }}/phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages.zip.asc"
+          "{{ phpmyadmin_private }}/phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages.zip"
       check_mode: false
       become: true
       become_user: "{{ phpmyadmin_user }}"
       register: phpmyadmin_archive_sig_check
       changed_when: false
       failed_when: >-
-        ( phpmyadmin_archive_sig_check.rc != 0 ) or
-        ( "Good signature from" not in phpmyadmin_archive_sig_check.stdout )
+        (phpmyadmin_archive_sig_check.rc != 0) or
+        ("Good signature from" not in phpmyadmin_archive_sig_check.stdout)
       when:
         - phpmyadmin_gpg_import.rc == 0
         - phpmyadmin_archive.stat.exists | bool
@@ -108,14 +110,14 @@
       when: phpmyadmin_index.stat.exists | bool
 
     - name: Uncompressed phpMyAdmin files moved into place
-      ansible.builtin.shell: "mv -T phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages {{ phpmyadmin_docroot }}"
-      args:
+      ansible.builtin.shell:
+        cmd: "mv -T phpMyAdmin-{{ phpmyadmin_proposed }}-all-languages {{ phpmyadmin_docroot }}"
         chdir: "{{ phpmyadmin_private }}"
         executable: "{{ ansible_local.bash.path }}"
       environment: "{{ phpmyadmin_env }}"
-      changed_when: true
       become: true
       become_user: "{{ phpmyadmin_user }}"
+      changed_when: true
 
     - name: Check if phpMyAdmin index.php exists in the DocumentRoot
       ansible.builtin.stat:

@@ -25,7 +25,7 @@
     - name: Check required variables
       ansible.builtin.assert:
         that:
-          - ( phpmyadmin_version == "latest" ) or ( phpmyadmin_version is regex('^[0-9][.][0-9][.][0-9]{1,2}[.]{0,1}[0-9]{0,2}$') )
+          - (phpmyadmin_version == "latest") or (phpmyadmin_version is regex('^[0-9][.][0-9][.][0-9]{1,2}[.]{0,1}[0-9]{0,2}$'))
         quiet: "{% if ansible_verbosity == 0 %}true{% else %}false{% endif %}"
 
     - name: Fail if the phpMyAdmin user account doesn't exist
@@ -39,15 +39,15 @@
         name: apt
         tasks_from: local_facts.yml
       when: >-
-        ( ansible_local.bash.path is not defined ) or
-        ( ansible_local.dpkg.arch is not defined ) or
-        ( ansible_local.dpkg.installed is not defined ) or
-        ( ansible_local.gpg.version is not defined )
+        (ansible_local.bash.path is not defined) or
+        (ansible_local.dpkg.arch is not defined) or
+        (ansible_local.dpkg.installed is not defined) or
+        (ansible_local.gpg.version is not defined)
 
     - name: Please remove the phpmyadmin package if you wish to install phpMyAdmin using this role
       ansible.builtin.assert:
         that:
-          - ( "phpmyadmin" not in ansible_local.dpkg.installed )
+          - ("phpmyadmin" not in ansible_local.dpkg.installed)
         quiet: "{% if ansible_verbosity == 0 %}true{% else %}false{% endif %}"
 
     - name: Required packages present
@@ -87,15 +87,15 @@
       block:
 
         - name: Check the default version of PHP available via the command line
-          ansible.builtin.shell: php --version
-          args:
+          ansible.builtin.shell:
+            cmd: php --version
             executable: "{{ ansible_local.bash.path }}"
           environment: "{{ phpmyadmin_env }}"
           check_mode: false
-          changed_when: false
           become: true
           become_user: "{{ phpmyadmin_user }}"
           register: phpmyadmin_php_version_check
+          changed_when: false
 
         - name: Set a fact for the version of PHP available via the command line
           ansible.builtin.set_fact:
@@ -144,11 +144,11 @@
     - name: Include phpMyAdmin install tasks
       ansible.builtin.include_tasks: install.yml
       when: >-
-        ( not phpmyadmin_package_json.stat.exists | bool ) or
-        ( ( phpmyadmin_package_json is defined ) and
-        ( phpmyadmin_package_json.stat.exists | bool ) and
-        ( phpmyadmin_installed is defined ) and
-        ( phpmyadmin_installed is version(phpmyadmin_proposed, '<') ) )
+        (not phpmyadmin_package_json.stat.exists | bool) or
+        ((phpmyadmin_package_json is defined) and
+        (phpmyadmin_package_json.stat.exists | bool) and
+        (phpmyadmin_installed is defined) and
+        (phpmyadmin_installed is version(phpmyadmin_proposed, '<')))
 
     - name: Include phpMyAdmin configure tasks
       ansible.builtin.include_tasks: config.yml
